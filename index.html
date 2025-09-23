@@ -17,23 +17,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: var(--font-family-main);
-            /* === NUEVO FONDO CON IMAGEN === */
             background-color: var(--color-background-start);
             background-image:
                 linear-gradient(135deg, var(--color-background-start) 0%, var(--color-background-mid) 50%, var(--color-background-end) 100%),
                 url('assets/Gemini_Generated_Image_iogzlriogzlriogz.png');
-            background-size: cover;
-            background-position: center center;
-            background-blend-mode: overlay; /* Mezcla el degradado con la imagen */
-            /* ============================== */
-            color: var(--color-text-light);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            line-height: 1.6;
-            padding: 30px;
+            background-size: cover; background-position: center center; background-blend-mode: overlay;
+            color: var(--color-text-light); min-height: 100vh; display: flex;
+            justify-content: center; align-items: center; font-size: 16px;
+            line-height: 1.6; padding: 30px;
         }
         .hidden { display: none !important; }
         #welcome-screen { text-align: center; max-width: 600px; width: 100%; padding: 40px; }
@@ -154,14 +145,20 @@
                     </div>
                 </div>
             </div>
+            <div class="input-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+                <input type="checkbox" id="allowDecimals" checked style="width: auto; height: 18px; accent-color: var(--color-primary);">
+                <label for="allowDecimals" style="margin-bottom: 0; text-transform: none; font-weight: 400; color: var(--color-text-light); cursor: pointer;">
+                    Permitir decimales en inversión
+                </label>
+            </div>
             <div class="split-inputs">
                 <div class="input-group">
                     <label for="payoutRate">Payout del Broker (%)</label>
                     <input type="number" id="payoutRate" value="87" step="0.1">
                 </div>
-                <div class="input-group" id="historicalWinRate-group">
+                <div class="input-group hidden" id="historicalWinRate-group">
                     <label for="historicalWinRate">Tasa de Aciertos (%)</label>
-                    <input type="number" id="historicalWinRate" value="60" step="0.1">
+                    <input type="number" id="historicalWinRate" value="60" step="0.1" readonly>
                 </div>
             </div>
             <div id="standard-params-group">
@@ -211,7 +208,7 @@
     <script>
         const state = {
             strategy: 'kelly', maxOps: 10, baseInvestmentPercent: 5, currentPhase: 'acumulacion',
-            historicalWinRate: 0, payoutRate: 0, initialBalance: 0, minInvestment: 1,
+            historicalWinRate: 0, payoutRate: 0, initialBalance: 0, minInvestment: 1, allowDecimals: true,
             sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
             takeProfitTriggerAmount: 0, currentBalance: 0, operationNumber: 1, winCount: 0,
             lastInvestment: 0, history: [], lossesToRecover: 0
@@ -234,7 +231,8 @@
                 journalNotes: document.getElementById('journal-notes'),
                 saveSessionBtn: document.getElementById('save-session-btn'),
                 backToSetupBtn: document.getElementById('back-to-setup-btn'),
-                phaseDisplay: document.getElementById('phase-display')
+                phaseDisplay: document.getElementById('phase-display'),
+                allowDecimals: document.getElementById('allowDecimals')
             },
             showDashboard() { this.elements.welcomeScreen.classList.add('hidden'); this.elements.dashboard.classList.remove('hidden'); document.body.style.alignItems = 'flex-start'; },
             showWelcomeScreen() {
@@ -271,7 +269,7 @@
             updateStrategyInfo(strategy) {
                 let info = {}; const infoBox = this.elements.strategyInfoBox;
                 switch (strategy) {
-                    case 'kelly': info = { borderColor: 'var(--color-primary)', title: '<strong>Riesgo:</strong> Moderado', description: '<strong>Ideal para:</strong> Crecimiento óptimo y a largo plazo.', warning: '<strong>Advertencia:</strong> Requiere conocer tu tasa de aciertos real.' }; break;
+                    case 'kelly': info = { borderColor: 'var(--color-primary)', title: '<strong>Riesgo:</strong> Moderado', description: '<strong>Ideal para:</strong> Crecimiento óptimo y a largo plazo.', warning: '<strong>Advertencia:</strong> Usa una tasa de aciertos fija del 60%.' }; break;
                     case 'martingale': info = { borderColor: 'var(--color-warning)', title: '<strong>Riesgo:</strong> Alto', description: '<strong>Ideal para:</strong> Recuperación de pérdidas pequeñas.', warning: '<strong>Advertencia:</strong> Peligroso en rachas de pérdidas.' }; break;
                     case 'phases_system': info = { borderColor: 'var(--color-loss)', title: '<strong>Riesgo:</strong> Alto y Estratégico', description: '<strong>Ideal para:</strong> Arriesgar ganancias para un crecimiento exponencial.', warning: '<strong>Advertencia:</strong> Requiere disciplina para volver a la fase de acumulación.' }; break;
                 }
@@ -285,7 +283,13 @@
                     state.initialBalance = parseFloat(ui.elements.balanceInput.value);
                     state.minInvestment = parseFloat(document.getElementById('minInvestment').value);
                     state.payoutRate = parseFloat(document.getElementById('payoutRate').value) / 100;
-                    if (state.strategy === 'kelly') { state.historicalWinRate = parseFloat(document.getElementById('historicalWinRate').value) / 100; }
+                    state.allowDecimals = ui.elements.allowDecimals.checked;
+                    
+                    // === LÓGICA DE TASA DE ACIERTOS FIJA PARA KELLY ===
+                    if (state.strategy === 'kelly') { 
+                        state.historicalWinRate = 0.60; // Fija la tasa de aciertos en 60%
+                    }
+                    
                     if (state.strategy === 'phases_system') {
                         state.baseInvestmentPercent = parseFloat(document.getElementById('base-investment-percent').value);
                         state.maxOps = parseInt(document.getElementById('max-ops').value);
@@ -320,9 +324,19 @@
             calculateNextInvestment() {
                 let finalInvestment = 0;
                 let totalOps = (state.strategy === 'phases_system') ? state.maxOps : '∞';
+                
                 if (state.strategy === 'kelly') { finalInvestment = this.calculateKellyInvestment(); }
                 else if (state.strategy === 'martingale') { finalInvestment = this.calculateMartingaleInvestment(); }
                 else if (state.strategy === 'phases_system') { finalInvestment = this.calculatePhasesSystemInvestment(); }
+
+                if (!state.allowDecimals) {
+                    finalInvestment = Math.round(finalInvestment);
+                    const effectiveMin = Math.ceil(state.minInvestment);
+                    if (finalInvestment < effectiveMin) {
+                        finalInvestment = effectiveMin;
+                    }
+                }
+
                 state.lastInvestment = Math.min(finalInvestment, state.currentBalance);
                 ui.updateLivePanel(state.operationNumber, totalOps, `$${state.lastInvestment.toFixed(2)}`);
             },
@@ -399,7 +413,7 @@
                 ui.elements.strategySelect.addEventListener('change', (e) => {
                     const strategy = e.target.value;
                     ui.elements.phasesSystemGroup.classList.toggle('hidden', strategy !== 'phases_system');
-                    ui.elements.winRateGroup.classList.toggle('hidden', strategy !== 'kelly');
+                    // === SE ELIMINA LA LÍNEA QUE MOSTRABA/OCULTABA EL CAMPO DE TASA DE ACIERTOS ===
                     ui.elements.standardParamsGroup.classList.toggle('hidden', strategy === 'phases_system');
                     ui.updateStrategyInfo(strategy);
                 });
