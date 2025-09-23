@@ -4,330 +4,203 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente de Inversión Estratégica</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* --- Variables de Color y Estilos Base --- */
         :root {
-            --color-background-start: #1a1a2e; --color-background-mid: #16213e; --color-background-end: #0f3460;
-            --color-primary: #00d4ff; --color-secondary: #00ff88; --color-text: #e0e0e0;
-            --color-text-muted: #a0a0a0; --color-card-background: rgba(22, 33, 62, 0.6);
-            --color-card-border: rgba(255, 255, 255, 0.15); --color-input-background: rgba(0, 0, 0, 0.2);
-            --color-win: #28a745; --color-loss: #dc3545; --border-radius: 12px;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --color-background-start: #1a1a2e; /* Azul oscuro */
+            --color-background-mid: #16213e;   /* Azul medio */
+            --color-background-end: #0f3460;    /* Azul petróleo */
+            --color-primary: #00d4ff;           /* Cian vibrante */
+            --color-secondary: #00ff88;         /* Verde esmeralda */
+            --color-tertiary: #a0a0a0;          /* Gris para texto mutado */
+            --color-text-light: #e0e0e0;        /* Texto claro */
+            --color-text-dark: #333;            /* Texto oscuro para botones */
+            --color-card-background: rgba(22, 33, 62, 0.75); /* Fondo de tarjeta semitransparente */
+            --color-card-border: rgba(255, 255, 255, 0.15); /* Borde de tarjeta sutil */
+            --color-input-background: rgba(0, 0, 0, 0.3); /* Fondo de input oscuro */
+            --color-win: #28a745;               /* Verde para ganancia */
+            --color-loss: #dc3545;              /* Rojo para pérdida */
+            --color-warning: #ffc107;           /* Amarillo para advertencias */
+            --border-radius-main: 15px;         /* Radio de borde principal */
+            --border-radius-sm: 8px;            /* Radio de borde pequeño */
+            --font-family-main: 'Poppins', sans-serif;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: var(--font-family);
+            font-family: var(--font-family-main);
             background: linear-gradient(135deg, var(--color-background-start), var(--color-background-mid), var(--color-background-end));
-            color: var(--color-text); min-height: 100vh; padding: 20px;
-            display: flex; justify-content: center; align-items: flex-start;
+            color: var(--color-text-light);
+            min-height: 100vh;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            font-size: 16px;
+            line-height: 1.6;
         }
-        .container { max-width: 900px; width: 100%; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 40px; }
+
+        /* --- Contenedor Principal --- */
+        .container {
+            max-width: 960px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* --- Cabecera --- */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
         .header h1 {
-            font-size: 2.8em; font-weight: 800; margin-bottom: 10px;
+            font-size: 3.2em;
+            font-weight: 800;
+            margin-bottom: 15px;
             background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -1px;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1.5px;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
         }
-        .header p { font-size: 1.1em; color: var(--color-text-muted); }
+        
+        .header p {
+            font-size: 1.2em;
+            color: var(--color-tertiary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* --- Tarjetas (Cards) --- */
         .card {
-            background: var(--color-card-background); backdrop-filter: blur(12px);
-            border: 1px solid var(--color-card-border); border-radius: var(--border-radius);
-            padding: 30px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); margin-bottom: 25px;
+            background: var(--color-card-background);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--border-radius-main);
+            padding: 35px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5); }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
         .card h2 {
-            margin-bottom: 25px; color: var(--color-primary); font-size: 1.6em; font-weight: 700;
-            border-bottom: 1px solid var(--color-card-border); padding-bottom: 15px;
+            margin-bottom: 30px;
+            color: var(--color-primary);
+            font-size: 1.8em;
+            font-weight: 700;
+            border-bottom: 1px solid var(--color-card-border);
+            padding-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .input-group { margin-bottom: 20px; width: 100%; }
+        .card h2 .icon {
+            font-size: 1.2em;
+            color: var(--color-secondary);
+        }
+
+        /* --- Formularios y Campos de Entrada --- */
+        .input-group {
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
         .input-group label {
-            display: block; margin-bottom: 8px; font-weight: 600;
-            color: var(--color-text-muted); font-size: 0.9em;
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--color-tertiary);
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .input-group input {
-            width: 100%; padding: 14px; border: 1px solid transparent; border-radius: 8px;
-            background: var(--color-input-background); color: var(--color-text); font-size: 1em;
+            width: 100%;
+            padding: 16px;
+            border: 1px solid transparent;
+            border-radius: var(--border-radius-sm);
+            background: var(--color-input-background);
+            color: var(--color-text-light);
+            font-size: 1.05em;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
+
         .input-group input:focus {
-            outline: none; border-color: var(--color-primary);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 18px rgba(0, 212, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
         }
-        .split-inputs { display: flex; gap: 20px; }
+        
+        .split-inputs {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap; /* Permite que los inputs se envuelvan en pantallas pequeñas */
+        }
+        .split-inputs .input-group {
+            flex: 1; /* Hace que los inputs ocupen el espacio disponible */
+            min-width: 280px; /* Asegura que no se hagan demasiado pequeños */
+        }
+
+        /* --- Botones --- */
         .btn, .btn-primary {
-            color: #000; border: none; padding: 16px 30px; border-radius: 8px;
-            font-size: 1.1em; font-weight: 700; cursor: pointer; width: 100%;
-            margin-top: 10px; transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+            color: var(--color-text-dark);
+            border: none;
+            padding: 18px 35px;
+            border-radius: var(--border-radius-sm);
+            font-size: 1.15em;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
+        
         .btn-primary {
             background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
-            box-shadow: 0 4px 20px rgba(0, 230, 172, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 230, 172, 0.25);
         }
+        .btn-primary:hover {
+            box-shadow: 0 10px 30px rgba(0, 230, 172, 0.4);
+        }
+
         .btn:hover, .btn-primary:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(0, 230, 172, 0.3); opacity: 0.95;
+            transform: translateY(-5px) scale(1.01);
+            opacity: 0.98;
         }
+        
         .btn-win { background-color: var(--color-win); color: white; }
         .btn-loss { background-color: var(--color-loss); color: white; }
+        .btn-resume { background: var(--color-warning); color: var(--color-text-dark); }
+        .btn-reset { background: #6c757d; color: white; }
+
+        /* --- Panel en Vivo y Mensajes --- */
         .live-panel { text-align: center; }
+
         .live-panel h3 {
-            font-size: 1.1em; color: var(--color-text-muted); margin-bottom: 10px;
-            text-transform: uppercase; letter-spacing: 1px;
+            font-size: 1.2em;
+            color: var(--color-tertiary);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
         }
+
         .investment-amount {
-            font-size: 4em; font-weight: 800;
-            background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 25px; line-height: 1.2;
-        }
-        .action-buttons { display: flex; gap: 20px; }
-        #session-end-message {
-            font-size: 2.2em; font-weight: 700; padding: 40px 20px;
-            border-radius: var(--border-radius); text-align: center; letter-spacing: 0.5px;
-        }
-        .victory-message {
-            color: var(--color-secondary); background: rgba(0, 255, 136, 0.1);
-            border: 1px solid var(--color-secondary); text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-        }
-        .loss-message {
-            color: var(--color-loss); background: rgba(220, 53, 69, 0.1);
-            border: 1px solid var(--color-loss); text-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
-        }
-        table {
-            width: 100%; border-collapse: collapse; background: rgba(0, 0, 0, 0.15);
-            border-radius: var(--border-radius); overflow: hidden;
-        }
-        th, td { padding: 16px; text-align: center; border-bottom: 1px solid var(--color-card-border); }
-        tr:last-child td { border-bottom: none; }
-        th {
-            background: rgba(0, 0, 0, 0.2); color: var(--color-primary);
-            font-weight: 700; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .win-row { background: rgba(0, 255, 136, 0.08); }
-        .loss-row { background: rgba(255, 0, 68, 0.08); }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Asistente de Inversión Estratégica</h1>
-            <p>Define tu plan, ejecuta con disciplina.</p>
-        </div>
-
-        <div id="setup-card" class="card">
-            <h2>⚙️ Plan de Sesión</h2>
-            <div class="split-inputs">
-                <div class="input-group">
-                    <label for="balance">Balance de Sesión ($)</label>
-                    <input type="number" id="balance" value="100" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="minInvestment">Inversión Mínima ($)</label>
-                    <input type="number" id="minInvestment" value="1" step="0.01" min="0.01">
-                </div>
-            </div>
-            <div class="split-inputs">
-                <div class="input-group">
-                    <label for="sessionProfitGoal">Take Profit / Meta de Ganancia (%)</label>
-                    <input type="number" id="sessionProfitGoal" value="20" min="1">
-                </div>
-                <div class="input-group">
-                    <label for="stopLossPercent">Stop-Loss / Límite de Pérdida (%)</label>
-                    <input type="number" id="stopLossPercent" value="25" min="1">
-                </div>
-            </div>
-            <div class="split-inputs">
-                <div class="input-group">
-                    <label for="winRate">Tasa de Ganancia (%)</label>
-                    <input type="number" id="winRate" value="80" step="0.1">
-                </div>
-                <div class="input-group">
-                    <label for="winsNeeded">Operaciones a Ganar</label>
-                    <input type="number" id="winsNeeded" value="4" min="1">
-                </div>
-            </div>
-             <div class="input-group">
-                <label for="totalOps">Máximo de Operaciones</label>
-                <input type="number" id="totalOps" value="15" min="1">
-            </div>
-            <button class="btn-primary" id="startBtn">▶️ Comenzar Sesión</button>
-        </div>
-
-        <div id="live-card" class="card hidden">
-             <h2>🔴 Panel de Operación en Vivo</h2>
-            <div id="live-panel-content" class="live-panel">
-                <h3 id="operation-label"></h3>
-                <div id="investment-amount" class="investment-amount"></div>
-                <div class="action-buttons">
-                    <button class="btn btn-win" id="winBtn">Gané ✅</button>
-                    <button class="btn btn-loss" id="lossBtn">Perdí ❌</button>
-                </div>
-            </div>
-            <div id="session-end-message" class="hidden"></div>
-            <button class="btn" id="resetBtn" style="background: #6c757d; margin-top: 20px;">Reiniciar Sesión</button>
-        </div>
-
-        <div id="history-card" class="card hidden">
-            <h2>📋 Historial de Operaciones</h2>
-            <div id="tableContent"></div>
-        </div>
-    </div>
-
-    <script>
-        const state = {
-            initialBalance: 0, winRate: 0, totalOps: 0, winsNeeded: 0, minInvestment: 1, 
-            sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
-            profitPerWin: 0, currentBalance: 0, lossesToRecover: 0,
-            operationNumber: 1, winCount: 0, lastInvestment: 0,
-            history: []
-        };
-
-        const ui = {
-            elements: {
-                setupCard: document.getElementById('setup-card'),
-                liveCard: document.getElementById('live-card'),
-                historyCard: document.getElementById('history-card'),
-                operationLabel: document.getElementById('operation-label'),
-                investmentAmount: document.getElementById('investment-amount'),
-                livePanelContent: document.getElementById('live-panel-content'),
-                sessionEndMessage: document.getElementById('session-end-message'),
-                tableContent: document.getElementById('tableContent')
-            },
-            updateLivePanel(opNum, totalOps, amountText) {
-                this.elements.operationLabel.innerText = `OPERACIÓN #${opNum} de ${totalOps}`;
-                this.elements.investmentAmount.innerText = amountText;
-            },
-            showEndMessage(isVictory, message) {
-                this.elements.livePanelContent.classList.add('hidden');
-                const msgDiv = this.elements.sessionEndMessage;
-                msgDiv.innerText = message;
-                msgDiv.className = isVictory ? 'victory-message' : 'loss-message';
-                msgDiv.classList.remove('hidden');
-            },
-            renderHistoryTable(history) {
-                let tableHTML = `<table><thead><tr><th>Op#</th><th>Invertiste</th><th>Resultado</th><th>Ganancia/Pérdida</th><th>Balance Final</th></tr></thead><tbody>`;
-                history.forEach(op => {
-                    const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
-                    const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
-                    tableHTML += `<tr class="${rowClass}">
-                        <td>${op.op}</td><td>$${op.investment.toFixed(2)}</td>
-                        <td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td>
-                        <td>$${op.balance.toFixed(2)}</td></tr>`;
-                });
-                tableHTML += '</tbody></table>';
-                this.elements.tableContent.innerHTML = tableHTML;
-            },
-            showLiveMode() {
-                this.elements.setupCard.classList.add('hidden');
-                this.elements.liveCard.classList.remove('hidden');
-                this.elements.historyCard.classList.remove('hidden');
-            },
-            showSetupMode() {
-                this.elements.setupCard.classList.remove('hidden');
-                this.elements.liveCard.classList.add('hidden');
-                this.elements.historyCard.classList.add('hidden');
-                this.elements.livePanelContent.classList.remove('hidden');
-                this.elements.sessionEndMessage.classList.add('hidden');
-                this.elements.tableContent.innerHTML = '';
-            }
-        };
-
-        const sessionManager = {
-            start() {
-                try {
-                    state.initialBalance = parseFloat(document.getElementById('balance').value);
-                    state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
-                    state.stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
-                    state.winRate = parseFloat(document.getElementById('winRate').value) / 100;
-                    state.totalOps = parseInt(document.getElementById('totalOps').value);
-                    state.winsNeeded = parseInt(document.getElementById('winsNeeded').value);
-                    state.minInvestment = parseFloat(document.getElementById('minInvestment').value);
-                    
-                    if ([state.initialBalance, state.sessionProfitGoal, state.stopLossPercent, state.winRate, state.totalOps, state.winsNeeded, state.minInvestment].some(isNaN) || state.winsNeeded >= state.totalOps) {
-                        throw new Error('Valores inválidos.');
-                    }
-                } catch (e) {
-                    alert('Error en la configuración: ' + e.message);
-                    return;
-                }
-
-                state.currentBalance = state.initialBalance;
-                state.stopLossTriggerAmount = state.initialBalance * (1 - (state.stopLossPercent / 100));
-                const sessionTargetProfit = state.initialBalance * (state.sessionProfitGoal / 100);
-                state.profitPerWin = sessionTargetProfit / state.winsNeeded;
-                
-                ui.showLiveMode();
-                this.calculateNextInvestment();
-            },
-            calculateNextInvestment() {
-                if (state.currentBalance <= 0) {
-                    this.end(false, "Capital Agotado. Sesión terminada."); return;
-                }
-                if (state.operationNumber > state.totalOps) {
-                    this.end(false, "Límite de operaciones alcanzado."); return;
-                }
-
-                const calculatedInvestment = (state.lossesToRecover + state.profitPerWin) / state.winRate;
-                const finalInvestment = Math.max(calculatedInvestment, state.minInvestment);
-                state.lastInvestment = Math.min(finalInvestment, state.currentBalance);
-                
-                ui.updateLivePanel(state.operationNumber, state.totalOps, `$${state.lastInvestment.toFixed(2)}`);
-            },
-            logResult(isWin) {
-                const investment = state.lastInvestment;
-                const netResult = isWin ? investment * state.winRate : -investment;
-                state.currentBalance += netResult;
-
-                state.history.push({
-                    op: state.operationNumber, investment, result: isWin ? 'WIN' : 'LOSS',
-                    netResult, balance: state.currentBalance
-                });
-
-                if (isWin) {
-                    state.winCount++;
-                    state.lossesToRecover = 0;
-                } else {
-                    state.lossesToRecover += investment;
-                }
-                
-                ui.renderHistoryTable(state.history);
-
-                if (state.currentBalance <= state.stopLossTriggerAmount) {
-                    this.end(false, "Stop-Loss alcanzado. Sesión terminada para proteger capital."); return;
-                }
-                if (state.winCount >= state.winsNeeded) {
-                    this.end(true, "¡Take Profit alcanzado! Sesión finalizada con éxito."); return;
-                }
-                
-                state.operationNumber++;
-                this.calculateNextInvestment();
-            },
-            end(isVictory, message) {
-                ui.showEndMessage(isVictory, message);
-            },
-            reset() {
-                Object.assign(state, {
-                    initialBalance: 0, winRate: 0, totalOps: 0, winsNeeded: 0, minInvestment: 1, 
-                    sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
-                    profitPerWin: 0, currentBalance: 0, lossesToRecover: 0,
-                    operationNumber: 1, winCount: 0, lastInvestment: 0,
-                    history: []
-                });
-                ui.showSetupMode();
-            }
-        };
-
-        const app = {
-            init() {
-                document.getElementById('startBtn').addEventListener('click', () => sessionManager.start());
-                document.getElementById('winBtn').addEventListener('click', () => sessionManager.logResult(true));
-                document.getElementById('lossBtn').addEventListener('click', () => sessionManager.logResult(false));
-                document.getElementById('resetBtn').addEventListener('click', () => sessionManager.reset());
-            }
-        };
-
-        app.init();
-    </script>
-</body>
-</html>
+            font-size: 4.5em;
+            font-weight: 800;
+            background: linear-gradient(4
