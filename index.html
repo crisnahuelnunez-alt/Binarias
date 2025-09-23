@@ -82,7 +82,6 @@
         th { background: rgba(0, 0, 0, 0.3); color: var(--color-primary); font-weight: 700; }
         .win-row { background: rgba(0, 255, 136, 0.1); }
         .loss-row { background: rgba(255, 0, 68, 0.1); }
-        /* === NUEVO ESTILO PARA LA ADVERTENCIA === */
         .warning-text {
             color: var(--color-warning);
             font-size: 0.9em;
@@ -127,24 +126,11 @@
                 <label for="strategy">Estrategia de Gestión de Riesgo</label>
                 <select id="strategy">
                     <option value="kelly">Criterio de Kelly (Óptimo)</option>
-                    <option value="martingale">Martingala (Recuperación)</option>
-                    <option value="phases_system">Sistema de Fases (Ataque)</option>
+                    <option value="martingale">Martingala (Clásica)</option>
+                    <option value="recovery_cycle">Ciclo de 10 Operaciones (Agresivo)</option>
                 </select>
             </div>
             <div id="strategy-info-box" style="margin-bottom: 25px; padding: 15px; border-left: 4px solid; border-radius: 8px; font-size: 0.9em; line-height: 1.5;"></div>
-
-            <div id="phases-system-group" class="hidden">
-                 <div class="split-inputs">
-                    <div class="input-group">
-                        <label for="base-investment-percent">Inversión Base (%)</label>
-                        <input type="number" id="base-investment-percent" value="5" min="1">
-                    </div>
-                    <div class="input-group">
-                        <label for="max-ops">Operaciones Máximas</label>
-                        <input type="number" id="max-ops" value="10" min="2">
-                    </div>
-                 </div>
-            </div>
 
             <div class="split-inputs">
                 <div class="input-group">
@@ -224,7 +210,7 @@
 
     <script>
         const state = {
-            strategy: 'kelly', maxOps: 10, baseInvestmentPercent: 5, currentPhase: 'acumulacion',
+            strategy: 'kelly',
             historicalWinRate: 0, payoutRate: 0, initialBalance: 0, minInvestment: 1, allowDecimals: true,
             sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
             takeProfitTriggerAmount: 0, currentBalance: 0, operationNumber: 1, winCount: 0,
@@ -239,7 +225,6 @@
                 operationLabel: document.getElementById('operation-label'), investmentAmount: document.getElementById('investment-amount'),
                 tableContent: document.getElementById('tableContent'), strategySelect: document.getElementById('strategy'),
                 strategyInfoBox: document.getElementById('strategy-info-box'),
-                phasesSystemGroup: document.getElementById('phases-system-group'),
                 winRateGroup: document.getElementById('historicalWinRate-group'),
                 standardParamsGroup: document.getElementById('standard-params-group'),
                 startBtn: document.getElementById('startBtn'), winBtn: document.getElementById('winBtn'),
@@ -251,7 +236,6 @@
                 phaseDisplay: document.getElementById('phase-display'),
                 allowDecimals: document.getElementById('allowDecimals'),
                 minInvestmentGroup: document.getElementById('min-investment-group'),
-                allowDecimalsGroup: document.getElementById('allow-decimals-group')
             },
             showDashboard() { this.elements.welcomeScreen.classList.add('hidden'); this.elements.dashboard.classList.remove('hidden'); document.body.style.alignItems = 'flex-start'; },
             showWelcomeScreen() {
@@ -268,12 +252,7 @@
             updateLivePanel(opNum, totalOps, amountText) {
                 this.elements.operationLabel.innerText = `OPERACIÓN #${opNum} de ${totalOps}`;
                 this.elements.investmentAmount.innerText = amountText;
-                if(state.strategy === 'phases_system') {
-                    this.elements.phaseDisplay.innerText = `FASE: ${state.currentPhase.toUpperCase()}`;
-                    this.elements.phaseDisplay.style.color = state.currentPhase === 'ataque' ? 'var(--color-secondary)' : 'var(--color-warning)';
-                } else {
-                    this.elements.phaseDisplay.innerText = '';
-                }
+                this.elements.phaseDisplay.innerText = '';
             },
             renderHistoryTable(history) {
                 let tableHTML = `<table><thead><tr><th>Op#</th><th>Invertido</th><th>Resultado</th><th>G/P</th><th>Balance</th></tr></thead><tbody>`;
@@ -289,8 +268,8 @@
                 let info = {}; const infoBox = this.elements.strategyInfoBox;
                 switch (strategy) {
                     case 'kelly': info = { borderColor: 'var(--color-primary)', title: '<strong>Riesgo:</strong> Moderado', description: '<strong>Ideal para:</strong> Crecimiento óptimo y a largo plazo.', warning: '<strong>Advertencia:</strong> Usa una tasa de aciertos fija del 60%.' }; break;
-                    case 'martingale': info = { borderColor: 'var(--color-warning)', title: '<strong>Riesgo:</strong> Alto', description: '<strong>Ideal para:</strong> Recuperación de pérdidas pequeñas.', warning: '<strong>Advertencia:</strong> Peligroso en rachas de pérdidas.' }; break;
-                    case 'phases_system': info = { borderColor: 'var(--color-loss)', title: '<strong>Riesgo:</strong> Alto y Estratégico', description: '<strong>Ideal para:</strong> Arriesgar ganancias para un crecimiento exponencial.', warning: '<strong>Advertencia:</strong> Requiere disciplina para volver a la fase de acumulación.' }; break;
+                    case 'martingale': info = { borderColor: 'var(--color-warning)', title: '<strong>Riesgo:</strong> Alto', description: '<strong>Ideal para:</strong> Recuperación de pérdidas simple.', warning: '<strong>Advertencia:</strong> Peligroso en rachas de pérdidas.' }; break;
+                    case 'recovery_cycle': info = { borderColor: 'var(--color-loss)', title: '<strong>Riesgo:</strong> Muy Alto', description: '<strong>Ideal para:</strong> Intentar ser rentable en 10 operaciones con baja tasa de aciertos.', warning: '<strong>Advertencia:</strong> El riesgo aumenta drásticamente con cada pérdida.' }; break;
                 }
                 infoBox.style.borderColor = info.borderColor; infoBox.innerHTML = `<p>${info.title}</p><p>${info.description}</p><p style="opacity: 0.8;">${info.warning}</p>`;
             }
@@ -299,7 +278,7 @@
             start() {
                 try {
                     state.strategy = ui.elements.strategySelect.value;
-                    state.initialBalance = parseFloat(ui.elements.balanceInput.value);
+                    state.initialBalance = parseFloat(ui.elements.initialBalanceInput.value);
                     state.minInvestment = parseFloat(document.getElementById('minInvestment').value);
                     state.payoutRate = parseFloat(document.getElementById('payoutRate').value) / 100;
                     state.allowDecimals = ui.elements.allowDecimals.checked; 
@@ -308,44 +287,35 @@
                         state.historicalWinRate = 0.60;
                     }
                     
-                    if (state.strategy === 'phases_system') {
-                        state.baseInvestmentPercent = parseFloat(document.getElementById('base-investment-percent').value);
-                        state.maxOps = parseInt(document.getElementById('max-ops').value);
-                        state.currentPhase = 'acumulacion';
-                    } else {
-                        state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
-                        state.stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
-                        state.stopLossTriggerAmount = state.initialBalance * (1 - (state.stopLossPercent / 100));
-                        state.takeProfitTriggerAmount = state.initialBalance * (1 + (state.sessionProfitGoal / 100));
-                    }
+                    state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
+                    state.stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
+                    state.stopLossTriggerAmount = state.initialBalance * (1 - (state.stopLossPercent / 100));
+                    state.takeProfitTriggerAmount = state.initialBalance * (1 + (state.sessionProfitGoal / 100));
+
                 } catch (e) { alert('Error en la configuración: ' + e.message); return; }
                 state.currentBalance = state.initialBalance; state.operationNumber = 1; state.winCount = 0;
                 state.history = []; state.lossesToRecover = 0;
                 ui.showLiveMode(); this.calculateNextInvestment();
             },
             calculateKellyInvestment() { const W = state.historicalWinRate; const R = state.payoutRate; if (R <= 0) return state.minInvestment; const kellyFraction = W - ((1 - W) / R); if (kellyFraction <= 0) return state.minInvestment; const investment = state.currentBalance * kellyFraction; return Math.max(investment, state.minInvestment); },
-            calculateMartingaleInvestment() {
-                const targetWinProfit = state.initialBalance * 0.02;
-                const calculatedInvestment = (state.lossesToRecover + targetWinProfit) / state.payoutRate;
+            calculateMartingaleInvestment(targetProfit) {
+                const calculatedInvestment = (state.lossesToRecover + targetProfit) / state.payoutRate;
                 return Math.max(calculatedInvestment, state.minInvestment);
-            },
-            calculatePhasesSystemInvestment() {
-                let investment = 0;
-                if(state.currentPhase === 'acumulacion') {
-                    investment = state.initialBalance * (state.baseInvestmentPercent / 100);
-                } else {
-                    const profit = state.currentBalance - state.initialBalance;
-                    investment = profit > state.minInvestment ? profit : state.minInvestment;
-                }
-                return Math.max(investment, state.minInvestment);
             },
             calculateNextInvestment() {
                 let finalInvestment = 0;
-                let totalOps = (state.strategy === 'phases_system') ? state.maxOps : '∞';
+                let totalOps = '∞';
                 
-                if (state.strategy === 'kelly') { finalInvestment = this.calculateKellyInvestment(); }
-                else if (state.strategy === 'martingale') { finalInvestment = this.calculateMartingaleInvestment(); }
-                else if (state.strategy === 'phases_system') { finalInvestment = this.calculatePhasesSystemInvestment(); }
+                if (state.strategy === 'kelly') { 
+                    finalInvestment = this.calculateKellyInvestment();
+                } else if (state.strategy === 'martingale') {
+                    const targetProfit = state.initialBalance * 0.02; // Ganancia modesta
+                    finalInvestment = this.calculateMartingaleInvestment(targetProfit);
+                } else if (state.strategy === 'recovery_cycle') {
+                    totalOps = 10;
+                    const targetProfit = state.initialBalance * 0.02; // Ganancia objetivo por victoria
+                    finalInvestment = this.calculateMartingaleInvestment(targetProfit);
+                }
 
                 if (!state.allowDecimals) {
                     finalInvestment = Math.round(finalInvestment);
@@ -364,23 +334,26 @@
                 const netResult = isWin ? investment * state.payoutRate : -investment;
                 state.currentBalance += netResult;
                 if (isWin) { state.winCount++; }
+                
                 state.history.push({ op: state.operationNumber, investment, result: isWin ? 'WIN' : 'LOSS', netResult, balance: state.currentBalance });
 
-                if(state.strategy === 'phases_system') {
-                    if(state.currentPhase === 'acumulacion' && state.currentBalance > state.initialBalance) { state.currentPhase = 'ataque'; }
-                    else if (state.currentPhase === 'ataque' && !isWin) { state.currentPhase = 'acumulacion'; }
+                const activeStrategies = ['martingale', 'recovery_cycle'];
+                if (activeStrategies.includes(state.strategy)) {
+                    if (!isWin) {
+                        state.lossesToRecover += investment;
+                    } else {
+                        state.lossesToRecover = 0;
+                    }
                 }
-                if (!isWin && state.strategy === 'martingale') { state.lossesToRecover += investment; }
-                else if (isWin && state.strategy === 'martingale') { state.lossesToRecover = 0; }
 
                 ui.renderHistoryTable(state.history);
 
                 let isSessionOver = false;
-                if(state.strategy === 'phases_system') {
-                    isSessionOver = (state.operationNumber >= state.maxOps) || (state.currentBalance < state.minInvestment);
-                } else {
-                    isSessionOver = (state.currentBalance <= state.stopLossTriggerAmount || state.currentBalance >= state.takeProfitTriggerAmount) || (state.currentBalance < state.minInvestment);
+                if(state.strategy === 'recovery_cycle') {
+                    isSessionOver = (state.operationNumber >= 10);
                 }
+                
+                isSessionOver = isSessionOver || (state.currentBalance <= state.stopLossTriggerAmount || state.currentBalance >= state.takeProfitTriggerAmount) || (state.currentBalance < state.minInvestment);
 
                 if (isSessionOver) {
                     this.end(state.currentBalance > state.initialBalance);
@@ -391,7 +364,6 @@
             end(isVictory) {
                 ui.elements.liveCard.classList.add('hidden'); ui.elements.historyCard.classList.add('hidden');
                 const profitLoss = state.currentBalance - state.initialBalance;
-                const profitLossPercent = (state.initialBalance > 0) ? (profitLoss / state.initialBalance) * 100 : 0;
                 const totalOps = state.history.length;
                 const winCount = state.history.filter(op => op.result === 'WIN').length;
                 const winRate = totalOps > 0 ? (winCount / totalOps) * 100 : 0;
@@ -430,9 +402,6 @@
                 ui.elements.backToSetupBtn.addEventListener('click', () => sessionManager.goBackToSetup());
                 ui.elements.strategySelect.addEventListener('change', (e) => {
                     const strategy = e.target.value;
-                    ui.elements.phasesSystemGroup.classList.toggle('hidden', strategy !== 'phases_system');
-                    ui.elements.standardParamsGroup.classList.toggle('hidden', strategy === 'phases_system');
-                    
                     const isKelly = strategy === 'kelly';
                     ui.elements.minInvestmentGroup.classList.toggle('hidden', isKelly);
                     
@@ -446,4 +415,3 @@
     </script>
 </body>
 </html>
-
