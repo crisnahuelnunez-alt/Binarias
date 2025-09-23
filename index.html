@@ -203,4 +203,371 @@
         .investment-amount {
             font-size: 4.5em;
             font-weight: 800;
-            background: linear-gradient(4
+            background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            line-height: 1.2;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .action-buttons .btn {
+            margin-top: 0; /* Anula el margin-top de .btn */
+        }
+        
+        #session-end-message {
+            font-size: 2.5em;
+            font-weight: 700;
+            padding: 50px 30px;
+            border-radius: var(--border-radius-main);
+            text-align: center;
+            letter-spacing: 0.8px;
+            margin-top: 20px;
+        }
+
+        .victory-message {
+            color: var(--color-secondary);
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid var(--color-secondary);
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
+
+        .loss-message {
+            color: var(--color-loss);
+            background: rgba(220, 53, 69, 0.15);
+            border: 1px solid var(--color-loss);
+            text-shadow: 0 0 15px rgba(220, 53, 69, 0.6);
+        }
+
+        /* --- Tabla de Historial --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius-main);
+            overflow: hidden;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        th, td {
+            padding: 18px;
+            text-align: center;
+            border-bottom: 1px solid var(--color-card-border);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--color-primary);
+            font-weight: 700;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .win-row { background: rgba(0, 255, 136, 0.1); }
+        .loss-row { background: rgba(255, 0, 68, 0.1); }
+        
+        .hidden { display: none; }
+
+        /* --- Warning de Riesgo --- */
+        .risk-warning {
+            background: rgba(255, 193, 7, 0.15); /* Amarillo semi-transparente */
+            border: 1px solid var(--color-warning);
+            border-radius: var(--border-radius-sm);
+            padding: 20px;
+            margin-bottom: 30px;
+            color: var(--color-warning);
+            font-size: 0.95em;
+            line-height: 1.5;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);
+        }
+        .risk-warning strong {
+            color: #fff;
+            font-weight: 700;
+        }
+        .risk-warning ul {
+            margin-top: 10px;
+            margin-left: 20px;
+            list-style: disc;
+        }
+        .risk-warning li {
+            margin-bottom: 5px;
+        }
+
+        /* --- Media Queries para Responsividad --- */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5em; }
+            .header p { font-size: 1em; }
+            .card { padding: 25px; }
+            .card h2 { font-size: 1.5em; }
+            .input-group input { padding: 12px; font-size: 0.95em; }
+            .btn, .btn-primary { padding: 14px 25px; font-size: 1em; }
+            .investment-amount { font-size: 3.5em; }
+            .action-buttons { flex-direction: column; gap: 15px; }
+            #session-end-message { font-size: 1.8em; padding: 30px 15px; }
+            th, td { padding: 12px; font-size: 0.9em; }
+            .split-inputs { flex-direction: column; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Asistente de Inversión Estratégica</h1>
+            <p>Planifica tus operaciones de opciones binarias con disciplina y gestión de riesgo.</p>
+        </div>
+
+        <div id="setup-card" class="card">
+            <h2><span class="icon">⚙️</span> Plan de Sesión</h2>
+            
+            <div class="risk-warning">
+                <strong>Advertencia de Riesgo:</strong> El trading de opciones binarias es altamente especulativo y conlleva un riesgo considerable de pérdida. Es crucial que entiendas estos riesgos:
+                <ul>
+                    <li>Puedes perder todo el capital invertido si el mercado se mueve en tu contra.</li>
+                    <li>Este asistente es una herramienta de gestión de riesgo; no garantiza ganancias.</li>
+                    <li>Opera solo con dinero que puedas permitirte perder.</li>
+                </ul>
+                La gestión de riesgo es clave para proteger tu capital.
+            </div>
+
+            <div class="split-inputs">
+                <div class="input-group">
+                    <label for="balance">Balance de Sesión ($)</label>
+                    <input type="number" id="balance" value="100" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="minInvestment">Inversión Mínima ($)</label>
+                    <input type="number" id="minInvestment" value="1" step="0.01" min="0.01">
+                </div>
+            </div>
+            <div class="split-inputs">
+                <div class="input-group">
+                    <label for="sessionProfitGoal">Take Profit / Meta de Ganancia (%)</label>
+                    <input type="number" id="sessionProfitGoal" value="20" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="stopLossPercent">Stop-Loss / Límite de Pérdida (%)</label>
+                    <input type="number" id="stopLossPercent" value="25" min="1">
+                </div>
+            </div>
+            <div class="split-inputs">
+                <div class="input-group">
+                    <label for="winRate">Tasa de Ganancia (%)</label>
+                    <input type="number" id="winRate" value="80" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label for="winsNeeded">Operaciones a Ganar</label>
+                    <input type="number" id="winsNeeded" value="4" min="1">
+                </div>
+            </div>
+             <div class="input-group">
+                <label for="totalOps">Máximo de Operaciones</label>
+                <input type="number" id="totalOps" value="15" min="1">
+            </div>
+            <button class="btn-primary" id="startBtn">▶️ Comenzar Sesión</button>
+            <button class="btn btn-resume hidden" id="resumeBtn">🔄 Retomar Sesión Anterior</button>
+        </div>
+
+        <div id="live-card" class="card hidden">
+             <h2><span class="icon">🔴</span> Panel de Operación en Vivo</h2>
+            <div id="live-panel-content" class="live-panel">
+                <h3 id="operation-label"></h3>
+                <div id="investment-amount" class="investment-amount"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-win" id="winBtn">Gané ✅</button>
+                    <button class="btn btn-loss" id="lossBtn">Perdí ❌</button>
+                </div>
+            </div>
+            <div id="session-end-message" class="hidden"></div>
+            <button class="btn btn-reset" id="resetBtn">Terminar y Reiniciar Sesión</button>
+        </div>
+
+        <div id="history-card" class="card hidden">
+            <h2><span class="icon">📋</span> Historial de Operaciones</h2>
+            <div id="tableContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            initialBalance: 0, winRate: 0, totalOps: 0, winsNeeded: 0, minInvestment: 1, 
+            sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
+            profitPerWin: 0, currentBalance: 0, lossesToRecover: 0,
+            operationNumber: 1, winCount: 0, lastInvestment: 0,
+            history: []
+        };
+
+        const ui = {
+            elements: {
+                setupCard: document.getElementById('setup-card'),
+                liveCard: document.getElementById('live-card'),
+                historyCard: document.getElementById('history-card'),
+                operationLabel: document.getElementById('operation-label'),
+                investmentAmount: document.getElementById('investment-amount'),
+                livePanelContent: document.getElementById('live-panel-content'),
+                sessionEndMessage: document.getElementById('session-end-message'),
+                tableContent: document.getElementById('tableContent'),
+                resumeBtn: document.getElementById('resumeBtn')
+            },
+            updateLivePanel(opNum, totalOps, amountText) {
+                this.elements.operationLabel.innerText = `OPERACIÓN #${opNum} de ${totalOps}`;
+                this.elements.investmentAmount.innerText = amountText;
+            },
+            showEndMessage(isVictory, message) {
+                this.elements.livePanelContent.classList.add('hidden');
+                const msgDiv = this.elements.sessionEndMessage;
+                msgDiv.innerText = message;
+                msgDiv.className = isVictory ? 'victory-message' : 'loss-message';
+                msgDiv.classList.remove('hidden');
+            },
+            renderHistoryTable(history) {
+                let tableHTML = `<table><thead><tr><th>Op#</th><th>Invertiste</th><th>Resultado</th><th>Ganancia/Pérdida</th><th>Balance Final</th></tr></thead><tbody>`;
+                history.forEach(op => {
+                    const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
+                    const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
+                    tableHTML += `<tr class="${rowClass}">
+                        <td>${op.op}</td><td>$${op.investment.toFixed(2)}</td>
+                        <td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td>
+                        <td>$${op.balance.toFixed(2)}</td></tr>`;
+                });
+                tableHTML += '</tbody></table>';
+                this.elements.tableContent.innerHTML = tableHTML;
+            },
+            showLiveMode() {
+                this.elements.setupCard.classList.add('hidden');
+                this.elements.liveCard.classList.remove('hidden');
+                this.elements.historyCard.classList.remove('hidden');
+            },
+            showSetupMode() {
+                this.elements.setupCard.classList.remove('hidden');
+                this.elements.liveCard.classList.add('hidden');
+                this.elements.historyCard.classList.add('hidden');
+                this.elements.livePanelContent.classList.remove('hidden');
+                this.elements.sessionEndMessage.classList.add('hidden');
+                this.elements.tableContent.innerHTML = '';
+            }
+        };
+
+        const sessionManager = {
+            start() {
+                try {
+                    state.initialBalance = parseFloat(document.getElementById('balance').value);
+                    state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
+                    state.stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
+                    state.winRate = parseFloat(document.getElementById('winRate').value) / 100;
+                    state.totalOps = parseInt(document.getElementById('totalOps').value);
+                    state.winsNeeded = parseInt(document.getElementById('winsNeeded').value);
+                    state.minInvestment = parseFloat(document.getElementById('minInvestment').value);
+                    
+                    if ([state.initialBalance, state.sessionProfitGoal, state.stopLossPercent, state.winRate, state.totalOps, state.winsNeeded, state.minInvestment].some(isNaN) || state.winsNeeded >= state.totalOps) {
+                        throw new Error('Valores inválidos.');
+                    }
+                } catch (e) {
+                    alert('Error en la configuración: ' + e.message);
+                    return;
+                }
+
+                state.currentBalance = state.initialBalance;
+                state.stopLossTriggerAmount = state.initialBalance * (1 - (state.stopLossPercent / 100));
+                const sessionTargetProfit = state.initialBalance * (state.sessionProfitGoal / 100);
+                state.profitPerWin = sessionTargetProfit / state.winsNeeded;
+                
+                ui.showLiveMode();
+                this.calculateNextInvestment();
+            },
+            calculateNextInvestment() {
+                if (state.currentBalance <= 0) { this.end(false, "Capital Agotado. Sesión terminada."); return; }
+                if (state.operationNumber > state.totalOps) { this.end(false, "Límite de operaciones alcanzado."); return; }
+
+                const calculatedInvestment = (state.lossesToRecover + state.profitPerWin) / state.winRate;
+                const finalInvestment = Math.max(calculatedInvestment, state.minInvestment);
+                state.lastInvestment = Math.min(finalInvestment, state.currentBalance);
+                
+                ui.updateLivePanel(state.operationNumber, state.totalOps, `$${state.lastInvestment.toFixed(2)}`);
+            },
+            logResult(isWin) {
+                const investment = state.lastInvestment;
+                const netResult = isWin ? investment * state.winRate : -investment;
+                state.currentBalance += netResult;
+
+                state.history.push({
+                    op: state.operationNumber, investment, result: isWin ? 'WIN' : 'LOSS',
+                    netResult, balance: state.currentBalance
+                });
+
+                if (isWin) {
+                    state.winCount++;
+                    state.lossesToRecover = 0;
+                } else {
+                    state.lossesToRecover += investment;
+                }
+                
+                localStorage.setItem('tradingSessionState', JSON.stringify(state));
+                ui.renderHistoryTable(state.history);
+
+                if (state.currentBalance <= state.stopLossTriggerAmount) { this.end(false, "Stop-Loss alcanzado. Sesión terminada para proteger capital."); return; }
+                if (state.winCount >= state.winsNeeded) { this.end(true, "¡Take Profit alcanzado! Sesión finalizada con éxito."); return; }
+                
+                state.operationNumber++;
+                this.calculateNextInvestment();
+            },
+            end(isVictory, message) {
+                localStorage.removeItem('tradingSessionState');
+                ui.showEndMessage(isVictory, message);
+            },
+            resume(savedState) {
+                Object.assign(state, savedState);
+                ui.showLiveMode();
+                ui.renderHistoryTable(state.history);
+                this.calculateNextInvestment();
+            },
+            reset() {
+                localStorage.removeItem('tradingSessionState');
+                Object.assign(state, {
+                    initialBalance: 0, winRate: 0, totalOps: 0, winsNeeded: 0, minInvestment: 1, 
+                    sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
+                    profitPerWin: 0, currentBalance: 0, lossesToRecover: 0,
+                    operationNumber: 1, winCount: 0, lastInvestment: 0,
+                    history: []
+                });
+                ui.showSetupMode();
+                ui.elements.resumeBtn.classList.add('hidden');
+            }
+        };
+
+        const app = {
+            init() {
+                document.getElementById('startBtn').addEventListener('click', () => sessionManager.start());
+                document.getElementById('winBtn').addEventListener('click', () => sessionManager.logResult(true));
+                document.getElementById('lossBtn').addEventListener('click', () => sessionManager.logResult(false));
+                document.getElementById('resetBtn').addEventListener('click', () => sessionManager.reset());
+                ui.elements.resumeBtn.addEventListener('click', () => {
+                    const savedState = JSON.parse(localStorage.getItem('tradingSessionState'));
+                    if (savedState) {
+                        sessionManager.resume(savedState);
+                    }
+                });
+
+                // Check for a saved session on page load
+                const savedState = localStorage.getItem('tradingSessionState');
+                if (savedState) {
+                    ui.elements.resumeBtn.classList.remove('hidden');
+                }
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
+
