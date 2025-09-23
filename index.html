@@ -82,6 +82,17 @@
         th { background: rgba(0, 0, 0, 0.3); color: var(--color-primary); font-weight: 700; }
         .win-row { background: rgba(0, 255, 136, 0.1); }
         .loss-row { background: rgba(255, 0, 68, 0.1); }
+        /* === NUEVO ESTILO PARA LA ADVERTENCIA === */
+        .warning-text {
+            color: var(--color-warning);
+            font-size: 0.9em;
+            border: 1px solid var(--color-warning);
+            padding: 10px 15px;
+            border-radius: var(--border-radius-sm);
+            margin-top: 10px;
+            margin-bottom: 30px;
+            background-color: rgba(255, 193, 7, 0.05);
+        }
         @media (max-width: 768px) {
             .investment-amount { font-size: 5em; }
             .action-buttons { flex-direction: column; }
@@ -93,13 +104,19 @@
     <div id="welcome-screen">
         <h1>Gestión de Riesgo Pro</h1>
         <p>Dominando Binarias</p>
+        
         <div class="input-group">
             <label for="initial-balance">¿Cuál es tu capital para la sesión?</label>
             <div class="input-with-symbol">
                 <span>$</span>
-                <input type="number" id="initial-balance" value="100" min="1">
+                <input type="number" id="initial-balance" placeholder="Ej: 500" min="1">
             </div>
         </div>
+        
+        <div class="warning-text">
+            ⚠️ Recuerda: Tu capital está en riesgo. Opera con responsabilidad.
+        </div>
+
         <button class="btn-primary" id="start-session-btn">Iniciar Sesión</button>
     </div>
 
@@ -422,7 +439,6 @@
                     ui.updateStrategyInfo(strategy);
                 });
                 ui.updateStrategyInfo('kelly');
-                // Ocultar solo el campo de inversión mínima al iniciar
                 ui.elements.minInvestmentGroup.classList.add('hidden');
             }
         };
@@ -430,3 +446,4 @@
     </script>
 </body>
 </html>
+
