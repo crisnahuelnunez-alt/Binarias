@@ -137,7 +137,7 @@
                         <input type="number" id="balance" value="100" min="1" readonly>
                     </div>
                 </div>
-                <div class="input-group">
+                <div class="input-group" id="min-investment-group">
                     <label for="minInvestment">Inversión Mínima</label>
                     <div class="input-with-symbol">
                         <span>$</span>
@@ -145,7 +145,7 @@
                     </div>
                 </div>
             </div>
-            <div class="input-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
+            <div class="input-group" id="allow-decimals-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
                 <input type="checkbox" id="allowDecimals" checked style="width: auto; height: 18px; accent-color: var(--color-primary);">
                 <label for="allowDecimals" style="margin-bottom: 0; text-transform: none; font-weight: 400; color: var(--color-text-light); cursor: pointer;">
                     Permitir decimales en inversión
@@ -232,7 +232,9 @@
                 saveSessionBtn: document.getElementById('save-session-btn'),
                 backToSetupBtn: document.getElementById('back-to-setup-btn'),
                 phaseDisplay: document.getElementById('phase-display'),
-                allowDecimals: document.getElementById('allowDecimals')
+                allowDecimals: document.getElementById('allowDecimals'),
+                minInvestmentGroup: document.getElementById('min-investment-group'),
+                allowDecimalsGroup: document.getElementById('allow-decimals-group')
             },
             showDashboard() { this.elements.welcomeScreen.classList.add('hidden'); this.elements.dashboard.classList.remove('hidden'); document.body.style.alignItems = 'flex-start'; },
             showWelcomeScreen() {
@@ -283,11 +285,10 @@
                     state.initialBalance = parseFloat(ui.elements.balanceInput.value);
                     state.minInvestment = parseFloat(document.getElementById('minInvestment').value);
                     state.payoutRate = parseFloat(document.getElementById('payoutRate').value) / 100;
-                    state.allowDecimals = ui.elements.allowDecimals.checked;
+                    state.allowDecimals = ui.elements.allowDecimals.checked; 
                     
-                    // === LÓGICA DE TASA DE ACIERTOS FIJA PARA KELLY ===
                     if (state.strategy === 'kelly') { 
-                        state.historicalWinRate = 0.60; // Fija la tasa de aciertos en 60%
+                        state.historicalWinRate = 0.60;
                     }
                     
                     if (state.strategy === 'phases_system') {
@@ -413,11 +414,16 @@
                 ui.elements.strategySelect.addEventListener('change', (e) => {
                     const strategy = e.target.value;
                     ui.elements.phasesSystemGroup.classList.toggle('hidden', strategy !== 'phases_system');
-                    // === SE ELIMINA LA LÍNEA QUE MOSTRABA/OCULTABA EL CAMPO DE TASA DE ACIERTOS ===
                     ui.elements.standardParamsGroup.classList.toggle('hidden', strategy === 'phases_system');
+                    
+                    const isKelly = strategy === 'kelly';
+                    ui.elements.minInvestmentGroup.classList.toggle('hidden', isKelly);
+                    
                     ui.updateStrategyInfo(strategy);
                 });
                 ui.updateStrategyInfo('kelly');
+                // Ocultar solo el campo de inversión mínima al iniciar
+                ui.elements.minInvestmentGroup.classList.add('hidden');
             }
         };
         app.init();
