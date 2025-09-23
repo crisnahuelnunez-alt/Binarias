@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de Inversión Estratégica</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px;
+            padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); margin-bottom: 20px;
+        }
+        .card h2 { margin-bottom: 20px; color: #00d4ff; font-size: 1.5em; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .input-group input {
+            width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px; background: rgba(255, 255, 255, 0.1);
+            color: white; font-size: 16px;
+        }
+        .split-inputs { display: flex; gap: 15px; }
+        .input-group input:focus { outline: none; border-color: #00d4ff; box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
+        .btn, .btn-primary {
+            color: white; border: none; padding: 15px 30px; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            width: 100%; margin-top: 10px; transition: transform 0.2s;
+        }
+        .btn-primary { background: linear-gradient(45deg, #00d4ff, #00ff88); }
+        .btn:hover, .btn-primary:hover { transform: translateY(-2px); }
+        .live-panel { text-align: center; }
+        .live-panel h3 { font-size: 1.2em; color: #aaa; margin-bottom: 10px; }
+        .investment-amount {
+            font-size: 3em; font-weight: bold;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        .action-buttons { display: flex; gap: 15px; }
+        .btn-win { background: #28a745; }
+        .btn-loss { background: #dc3545; }
+        #session-end-message {
+            font-size: 2em; font-weight: bold; padding: 40px 20px;
+            border-radius: 10px; text-align: center;
+        }
+        .victory-message { color: #28a745; background: rgba(40, 167, 69, 0.1); border: 1px solid #28a745; }
+        .loss-message { color: #dc3545; background: rgba(220, 53, 69, 0.1); border: 1px solid #dc3545; }
+        table { width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        th { background: rgba(0, 212, 255, 0.2); color: #00d4ff; font-weight: 600; }
+        .win-row { background: rgba(0, 255, 136, 0.1); }
+        .loss-row { background: rgba(255, 0, 68, 0.1); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Asistente de Inversión Estratégica</h1>
+        </div>
+
+        <div id="setup-card" class="card">
+            <h2>⚙️ Plan de Sesión</h2>
+            <div class="split-inputs">
+                <div class="input-group" style="width: 100%;">
+                    <label for="balance">Balance Inicial ($)</label>
+                    <input type="number" id="balance" value="100" min="1">
+                </div>
+                <div class="input-group" style="width: 100%;">
+                    <label for="sessionProfitGoal">Meta de Ganancia (%)</label>
+                    <input type="number" id="sessionProfitGoal" value="20" min="1">
+                </div>
+            </div>
+            <div class="split-inputs">
+                <div class="input-group" style="width: 100%;">
+                    <label for="winRate">Tasa de Ganancia (%)</label>
+                    <input type="number" id="winRate" value="80" step="0.1">
+                </div>
+                 <div class="input-group" style="width: 100%;">
+                    <label for="minInvestment">Inversión Mínima ($)</label>
+                    <input type="number" id="minInvestment" value="1" step="0.01" min="0.01">
+                </div>
+            </div>
+            <div class="split-inputs">
+                <div class="input-group" style="width: 100%;">
+                    <label for="totalOps">Total de Operaciones</label>
+                    <input type="number" id="totalOps" value="10" min="1">
+                </div>
+                <div class="input-group" style="width: 100%;">
+                    <label for="winsNeeded">Operaciones a Ganar</label>
+                    <input type="number" id="winsNeeded" value="4" min="1">
+                </div>
+            </div>
+            <button class="btn-primary" id="startBtn">▶️ Comenzar Sesión</button>
+        </div>
+
+        <div id="live-card" class="card hidden">
+             <h2>🔴 Panel de Operación en Vivo</h2>
+            <div id="live-panel-content" class="live-panel">
+                <h3 id="operation-label"></h3>
+                <div id="investment-amount" class="investment-amount"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-win" id="winBtn">Gané ✅</button>
+                    <button class="btn btn-loss" id="lossBtn">Perdí ❌</button>
+                </div>
+            </div>
+            <div id="session-end-message" class="hidden"></div>
+            <button class="btn" id="resetBtn" style="background: #6c757d; margin-top: 20px;">Reiniciar Sesión</button>
+        </div>
+
+        <div id="history-card" class="card hidden">
+            <h2>📋 Historial de Operaciones</h2>
+            <div id="tableContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            state: {
+                initialBalance: 0, winRate: 0, totalOps: 0, winsNeeded: 0, minInvestment: 1, sessionProfitGoal: 20,
+                profitPerWin: 0, currentBalance: 0, lossesToRecover: 0,
+                operationNumber: 1, winCount: 0, lastInvestment: 0,
+                history: []
+            },
+
+            init: function() {
+                document.getElementById('startBtn').addEventListener('click', this.startSession.bind(this));
+                document.getElementById('winBtn').addEventListener('click', () => this.logResult(true));
+                document.getElementById('lossBtn').addEventListener('click', () => this.logResult(false));
+                document.getElementById('resetBtn').addEventListener('click', this.resetSession.bind(this));
+            },
+
+            startSession: function() {
+                this.state.initialBalance = parseFloat(document.getElementById('balance').value);
+                this.state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
+                this.state.winRate = parseFloat(document.getElementById('winRate').value) / 100;
+                this.state.totalOps = parseInt(document.getElementById('totalOps').value);
+                this.state.winsNeeded = parseInt(document.getElementById('winsNeeded').value);
+                this.state.minInvestment = parseFloat(document.getElementById('minInvestment').value);
+                this.state.currentBalance = this.state.initialBalance;
+
+                if (isNaN(this.state.initialBalance) || isNaN(this.state.sessionProfitGoal) || isNaN(this.state.winRate) || isNaN(this.state.totalOps) || isNaN(this.state.winsNeeded) || isNaN(this.state.minInvestment) || this.state.winsNeeded >= this.state.totalOps) {
+                    alert('Valores inválidos. Revisa la configuración.');
+                    return;
+                }
+
+                const sessionTargetProfit = this.state.initialBalance * (this.state.sessionProfitGoal / 100);
+                this.state.profitPerWin = sessionTargetProfit / this.state.winsNeeded;
+                
+                document.getElementById('setup-card').classList.add('hidden');
+                document.getElementById('live-card').classList.remove('hidden');
+                document.getElementById('history-card').classList.remove('hidden');
+
+                this.calculateNextInvestment();
+            },
+
+            calculateNextInvestment: function() {
+                if (this.state.currentBalance <= 0) {
+                    this.endSession(false, "Capital Agotado. Sesión terminada.");
+                    return;
+                }
+                if (this.state.operationNumber > this.state.totalOps) {
+                    this.endSession(false, "Límite de operaciones alcanzado. Sesión terminada.");
+                    return;
+                }
+
+                const calculatedInvestment = (this.state.lossesToRecover + this.state.profitPerWin) / this.state.winRate;
+                const finalInvestment = Math.max(calculatedInvestment, this.state.minInvestment);
+
+                this.state.lastInvestment = Math.min(finalInvestment, this.state.currentBalance);
+                
+                this.updateLivePanel(`$${this.state.lastInvestment.toFixed(2)}`);
+            },
+
+            logResult: function(isWin) {
+                const investment = this.state.lastInvestment;
+                const netResult = isWin ? investment * this.state.winRate : -investment;
+
+                this.state.currentBalance += netResult;
+
+                this.state.history.push({
+                    op: this.state.operationNumber,
+                    investment: investment,
+                    result: isWin ? 'WIN' : 'LOSS',
+                    netResult: netResult,
+                    balance: this.state.currentBalance
+                });
+
+                if (isWin) {
+                    this.state.winCount++;
+                    this.state.lossesToRecover = 0;
+                } else {
+                    this.state.lossesToRecover += investment;
+                }
+                
+                this.renderHistoryTable();
+
+                if (this.state.winCount >= this.state.winsNeeded) {
+                    this.endSession(true, "¡META ALCANZADA! Sesión finalizada con éxito.");
+                    return;
+                }
+                
+                this.state.operationNumber++;
+                this.calculateNextInvestment();
+            },
+            
+            updateLivePanel: function(amountText) {
+                document.getElementById('operation-label').innerText = `OPERACIÓN #${this.state.operationNumber} de ${this.state.totalOps}`;
+                document.getElementById('investment-amount').innerText = amountText;
+            },
+
+            endSession: function(isVictory, message) {
+                const livePanel = document.getElementById('live-panel-content');
+                const endMessageDiv = document.getElementById('session-end-message');
+                
+                livePanel.classList.add('hidden');
+                
+                endMessageDiv.innerText = message;
+                endMessageDiv.className = isVictory ? 'victory-message' : 'loss-message';
+                endMessageDiv.classList.remove('hidden');
+            },
+
+            renderHistoryTable: function() {
+                const contentDiv = document.getElementById('tableContent');
+                let tableHTML = `
+                    <table>
+                        <thead><tr><th>Op#</th><th>Invertiste</th><th>Resultado</th><th>Ganancia/Pérdida</th><th>Balance Final</th></tr></thead>
+                        <tbody>`;
+
+                this.state.history.forEach(op => {
+                    const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
+                    const resultColor = op.netResult >= 0 ? '#00ff88' : '#ff0044';
+                    tableHTML += `
+                        <tr class="${rowClass}">
+                            <td>${op.op}</td>
+                            <td>$${op.investment.toFixed(2)}</td>
+                            <td>${op.result}</td>
+                            <td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td>
+                            <td>$${op.balance.toFixed(2)}</td>
+                        </tr>`;
+                });
+
+                tableHTML += '</tbody></table>';
+                contentDiv.innerHTML = tableHTML;
+            },
+
+            resetSession: function() {
+                Object.assign(this.state, {
+                    initialBalance: 0, winRate: 0, totalOps: 0, winsNeeded: 0, minInvestment: 1, sessionProfitGoal: 20,
+                    profitPerWin: 0, currentBalance: 0, lossesToRecover: 0,
+                    operationNumber: 1, winCount: 0, lastInvestment: 0,
+                    history: []
+                });
+                
+                document.getElementById('setup-card').classList.remove('hidden');
+                document.getElementById('live-card').classList.add('hidden');
+                document.getElementById('history-card').classList.add('hidden');
+                
+                document.getElementById('live-panel-content').classList.remove('hidden');
+                document.getElementById('session-end-message').classList.add('hidden');
+
+                document.getElementById('tableContent').innerHTML = '';
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
