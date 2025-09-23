@@ -108,7 +108,7 @@
             <label for="initial-balance">¿Cuál es tu capital para la sesión?</label>
             <div class="input-with-symbol">
                 <span>$</span>
-                <input type="number" id="initial-balance" placeholder="Ej: 500" min="1">
+                <input type="number" id="initial-balance" placeholder="Ej: 100" min="1">
             </div>
         </div>
         
@@ -125,57 +125,62 @@
             <div class="input-group">
                 <label for="strategy">Estrategia de Gestión de Riesgo</label>
                 <select id="strategy">
-                    <option value="kelly">Criterio de Kelly (Óptimo)</option>
+                    <option value="masaniello">Progresión de Ciclo (Masaniello)</option>
                     <option value="martingale">Martingala (Clásica)</option>
-                    <option value="recovery_cycle">Ciclo de 10 Operaciones (Agresivo)</option>
+                    <option value="kelly">Criterio de Kelly (Óptimo)</option>
                 </select>
             </div>
             <div id="strategy-info-box" style="margin-bottom: 25px; padding: 15px; border-left: 4px solid; border-radius: 8px; font-size: 0.9em; line-height: 1.5;"></div>
 
-            <div class="split-inputs">
-                <div class="input-group">
-                    <label for="balance">Balance de Sesión</label>
-                    <div class="input-with-symbol">
-                        <span>$</span>
-                        <input type="number" id="balance" value="100" min="1" readonly>
-                    </div>
+            <div class="input-group">
+                <label for="balance">Balance de Sesión</label>
+                <div class="input-with-symbol">
+                    <span>$</span>
+                    <input type="number" id="balance" readonly>
                 </div>
-                <div class="input-group" id="min-investment-group">
-                    <label for="minInvestment">Inversión Mínima</label>
-                    <div class="input-with-symbol">
-                        <span>$</span>
-                        <input type="number" id="minInvestment" value="1" step="0.01" min="0.01">
+            </div>
+            
+            <div id="masaniello-group">
+                <div class="split-inputs">
+                    <div class="input-group">
+                        <label for="total-trades">Cantidad de Operaciones</label>
+                        <input type="number" id="total-trades" value="10" min="2">
+                    </div>
+                    <div class="input-group">
+                        <label for="expected-wins">Ganadas Esperadas</label>
+                        <input type="number" id="expected-wins" value="4" min="1">
                     </div>
                 </div>
             </div>
-            <div class="input-group" id="allow-decimals-group" style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
-                <input type="checkbox" id="allowDecimals" checked style="width: auto; height: 18px; accent-color: var(--color-primary);">
-                <label for="allowDecimals" style="margin-bottom: 0; text-transform: none; font-weight: 400; color: var(--color-text-light); cursor: pointer;">
-                    Permitir decimales en inversión
-                </label>
+
+            <div id="other-strategies-group" class="hidden">
+                <div id="standard-params-group">
+                    <div class="split-inputs">
+                        <div class="input-group">
+                            <label for="sessionProfitGoal">Take Profit (%)</label>
+                            <input type="number" id="sessionProfitGoal" value="20" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="stopLossPercent">Stop-Loss (%)</label>
+                            <input type="number" id="stopLossPercent" value="25" min="1">
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <div class="split-inputs">
                 <div class="input-group">
                     <label for="payoutRate">Payout del Broker (%)</label>
                     <input type="number" id="payoutRate" value="87" step="0.1">
                 </div>
-                <div class="input-group hidden" id="historicalWinRate-group">
-                    <label for="historicalWinRate">Tasa de Aciertos (%)</label>
-                    <input type="number" id="historicalWinRate" value="60" step="0.1" readonly>
+                <div class="input-group" style="justify-content: center; align-items: center; display: flex; padding-top: 15px;">
+                    <input type="checkbox" id="allowDecimals" checked style="width: auto; height: 18px; accent-color: var(--color-primary); margin-right: 12px;">
+                    <label for="allowDecimals" style="margin-bottom: 0; text-transform: none; font-weight: 400; color: var(--color-text-light); cursor: pointer;">
+                        Permitir decimales
+                    </label>
                 </div>
             </div>
-            <div id="standard-params-group">
-                <div class="split-inputs">
-                    <div class="input-group">
-                        <label for="sessionProfitGoal">Take Profit (%)</label>
-                        <input type="number" id="sessionProfitGoal" value="20" min="1">
-                    </div>
-                    <div class="input-group">
-                        <label for="stopLossPercent">Stop-Loss (%)</label>
-                        <input type="number" id="stopLossPercent" value="25" min="1">
-                    </div>
-                </div>
-            </div>
+            
             <button class="btn-primary" id="startBtn">▶️ Comenzar Operativa</button>
         </div>
         <div id="live-card" class="card hidden">
@@ -210,12 +215,40 @@
 
     <script>
         const state = {
-            strategy: 'kelly',
-            historicalWinRate: 0, payoutRate: 0, initialBalance: 0, minInvestment: 1, allowDecimals: true,
+            strategy: 'masaniello',
+            payoutMasa: 1.87, payoutOthers: 0.87,
+            initialBalance: 0, minInvestment: 0.01,
             sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
-            takeProfitTriggerAmount: 0, currentBalance: 0, operationNumber: 1, winCount: 0,
-            lastInvestment: 0, history: [], lossesToRecover: 0
+            takeProfitTriggerAmount: 0, currentBalance: 0, operationNumber: 1, 
+            lastInvestment: 0, history: [], lossesToRecover: 0,
+            masaniello: { totalTrades: 0, expectedWins: 0, winsSoFar: 0, tradesDone: 0 }
         };
+
+        const masanielloMath = {
+            calculateFirstInvestment(capital, totalTrades, expectedWins, payout) {
+                let C = 1;
+                let T = 0;
+                let E = 0;
+                for (let i = 0; i <= totalTrades - expectedWins; i++) {
+                    E = expectedWins + i;
+                    T += this.combinations(E - 1, expectedWins - 1) * Math.pow(payout - 1, expectedWins) * Math.pow(1, i);
+                }
+                C = T / Math.pow(payout, totalTrades);
+                const firstBet = (capital * C) / (1 - C);
+                return firstBet;
+            },
+            combinations(n, k) {
+                if (k < 0 || k > n) return 0;
+                if (k === 0 || k === n) return 1;
+                if (k > n / 2) k = n - k;
+                let res = 1;
+                for (let i = 1; i <= k; i++) {
+                    res = res * (n - i + 1) / i;
+                }
+                return res;
+            }
+        };
+
         const ui = {
             elements: {
                 welcomeScreen: document.getElementById('welcome-screen'), dashboard: document.getElementById('dashboard'),
@@ -225,8 +258,6 @@
                 operationLabel: document.getElementById('operation-label'), investmentAmount: document.getElementById('investment-amount'),
                 tableContent: document.getElementById('tableContent'), strategySelect: document.getElementById('strategy'),
                 strategyInfoBox: document.getElementById('strategy-info-box'),
-                winRateGroup: document.getElementById('historicalWinRate-group'),
-                standardParamsGroup: document.getElementById('standard-params-group'),
                 startBtn: document.getElementById('startBtn'), winBtn: document.getElementById('winBtn'),
                 lossBtn: document.getElementById('lossBtn'),
                 journalCard: document.getElementById('journal-card'), journalSummary: document.getElementById('journal-summary'),
@@ -235,7 +266,8 @@
                 backToSetupBtn: document.getElementById('back-to-setup-btn'),
                 phaseDisplay: document.getElementById('phase-display'),
                 allowDecimals: document.getElementById('allowDecimals'),
-                minInvestmentGroup: document.getElementById('min-investment-group'),
+                masanielloGroup: document.getElementById('masaniello-group'),
+                otherStrategiesGroup: document.getElementById('other-strategies-group')
             },
             showDashboard() { this.elements.welcomeScreen.classList.add('hidden'); this.elements.dashboard.classList.remove('hidden'); document.body.style.alignItems = 'flex-start'; },
             showWelcomeScreen() {
@@ -267,9 +299,9 @@
             updateStrategyInfo(strategy) {
                 let info = {}; const infoBox = this.elements.strategyInfoBox;
                 switch (strategy) {
-                    case 'kelly': info = { borderColor: 'var(--color-primary)', title: '<strong>Riesgo:</strong> Moderado', description: '<strong>Ideal para:</strong> Crecimiento óptimo y a largo plazo.', warning: '<strong>Advertencia:</strong> Usa una tasa de aciertos fija del 60%.' }; break;
+                    case 'masaniello': info = { borderColor: 'var(--color-primary)', title: '<strong>Riesgo:</strong> Calculado', description: '<strong>Ideal para:</strong> Alcanzar un objetivo con una tasa de aciertos predefinida.', warning: '<strong>Advertencia:</strong> Si fallas más de lo permitido, pierdes todo el capital del ciclo.' }; break;
                     case 'martingale': info = { borderColor: 'var(--color-warning)', title: '<strong>Riesgo:</strong> Alto', description: '<strong>Ideal para:</strong> Recuperación de pérdidas simple.', warning: '<strong>Advertencia:</strong> Peligroso en rachas de pérdidas.' }; break;
-                    case 'recovery_cycle': info = { borderColor: 'var(--color-loss)', title: '<strong>Riesgo:</strong> Muy Alto', description: '<strong>Ideal para:</strong> Intentar ser rentable en 10 operaciones con baja tasa de aciertos.', warning: '<strong>Advertencia:</strong> El riesgo aumenta drásticamente con cada pérdida.' }; break;
+                    case 'kelly': info = { borderColor: 'var(--color-secondary)', title: '<strong>Riesgo:</strong> Moderado', description: '<strong>Ideal para:</strong> Crecimiento óptimo a largo plazo.', warning: '<strong>Advertencia:</strong> Fija una tasa de aciertos del 60%.' }; break;
                 }
                 infoBox.style.borderColor = info.borderColor; infoBox.innerHTML = `<p>${info.title}</p><p>${info.description}</p><p style="opacity: 0.8;">${info.warning}</p>`;
             }
@@ -279,105 +311,126 @@
                 try {
                     state.strategy = ui.elements.strategySelect.value;
                     state.initialBalance = parseFloat(ui.elements.initialBalanceInput.value);
-                    state.minInvestment = parseFloat(document.getElementById('minInvestment').value);
-                    state.payoutRate = parseFloat(document.getElementById('payoutRate').value) / 100;
-                    state.allowDecimals = ui.elements.allowDecimals.checked; 
-                    
-                    if (state.strategy === 'kelly') { 
-                        state.historicalWinRate = 0.60;
-                    }
-                    
-                    state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
-                    state.stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
-                    state.stopLossTriggerAmount = state.initialBalance * (1 - (state.stopLossPercent / 100));
-                    state.takeProfitTriggerAmount = state.initialBalance * (1 + (state.sessionProfitGoal / 100));
+                    state.currentBalance = state.initialBalance;
+                    const payoutInput = parseFloat(document.getElementById('payoutRate').value);
+                    state.payoutMasa = 1 + (payoutInput / 100);
+                    state.payoutOthers = payoutInput / 100;
 
+                    if (state.strategy === 'masaniello') {
+                        state.masaniello.totalTrades = parseInt(document.getElementById('total-trades').value);
+                        state.masaniello.expectedWins = parseInt(document.getElementById('expected-wins').value);
+                        state.masaniello.tradesDone = 0;
+                        state.masaniello.winsSoFar = 0;
+                        if (state.masaniello.expectedWins >= state.masaniello.totalTrades) {
+                            alert("Las ganadas esperadas deben ser menores que el total de operaciones.");
+                            return;
+                        }
+                    } else {
+                        state.minInvestment = 0.01;
+                        state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
+                        state.stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
+                        state.stopLossTriggerAmount = state.initialBalance * (1 - (state.stopLossPercent / 100));
+                        state.takeProfitTriggerAmount = state.initialBalance * (1 + (state.sessionProfitGoal / 100));
+                    }
                 } catch (e) { alert('Error en la configuración: ' + e.message); return; }
-                state.currentBalance = state.initialBalance; state.operationNumber = 1; state.winCount = 0;
-                state.history = []; state.lossesToRecover = 0;
-                ui.showLiveMode(); this.calculateNextInvestment();
-            },
-            calculateKellyInvestment() { const W = state.historicalWinRate; const R = state.payoutRate; if (R <= 0) return state.minInvestment; const kellyFraction = W - ((1 - W) / R); if (kellyFraction <= 0) return state.minInvestment; const investment = state.currentBalance * kellyFraction; return Math.max(investment, state.minInvestment); },
-            calculateMartingaleInvestment(targetProfit) {
-                const calculatedInvestment = (state.lossesToRecover + targetProfit) / state.payoutRate;
-                return Math.max(calculatedInvestment, state.minInvestment);
+
+                state.operationNumber = 1; 
+                state.history = []; 
+                state.lossesToRecover = 0;
+                ui.showLiveMode(); 
+                this.calculateNextInvestment();
             },
             calculateNextInvestment() {
                 let finalInvestment = 0;
                 let totalOps = '∞';
                 
-                if (state.strategy === 'kelly') { 
-                    finalInvestment = this.calculateKellyInvestment();
-                } else if (state.strategy === 'martingale') {
-                    const targetProfit = state.initialBalance * 0.02; // Ganancia modesta
-                    finalInvestment = this.calculateMartingaleInvestment(targetProfit);
-                } else if (state.strategy === 'recovery_cycle') {
-                    totalOps = 10;
-                    const targetProfit = state.initialBalance * 0.02; // Ganancia objetivo por victoria
-                    finalInvestment = this.calculateMartingaleInvestment(targetProfit);
-                }
-
-                if (!state.allowDecimals) {
-                    finalInvestment = Math.round(finalInvestment);
-                    const effectiveMin = Math.ceil(state.minInvestment);
-                    if (finalInvestment < effectiveMin) {
-                        finalInvestment = effectiveMin;
+                if (state.strategy === 'masaniello') {
+                    const m = state.masaniello;
+                    totalOps = m.totalTrades;
+                    if (m.tradesDone === 0) {
+                        m.initialBet = masanielloMath.calculateFirstInvestment(state.initialBalance, m.totalTrades, m.expectedWins, state.payoutMasa);
+                        finalInvestment = m.initialBet;
+                    } else {
+                        const lastOp = state.history[state.history.length - 1];
+                        if (lastOp.result === 'WIN') {
+                            finalInvestment = state.lastInvestment * state.payoutMasa / state.payoutMasa; // Se mantiene igual
+                        } else { // LOSS
+                             finalInvestment = state.lastInvestment * (m.totalTrades - m.tradesDone + 1) / (m.totalTrades - m.expectedWins - (m.tradesDone - m.winsSoFar));
+                        }
                     }
+                } else {
+                    if (state.strategy === 'kelly') {
+                        const kellyFraction = 0.60 - ((1 - 0.60) / state.payoutOthers);
+                        finalInvestment = (kellyFraction > 0) ? state.currentBalance * kellyFraction : state.minInvestment;
+                    } else if (state.strategy === 'martingale') {
+                        const targetProfit = state.initialBalance * 0.02; 
+                        finalInvestment = (state.lossesToRecover + targetProfit) / state.payoutOthers;
+                    }
+                    finalInvestment = Math.max(finalInvestment, state.minInvestment);
+                }
+                
+                if (!ui.elements.allowDecimals.checked) {
+                    finalInvestment = Math.round(finalInvestment);
                 }
 
-                state.lastInvestment = Math.min(finalInvestment, state.currentBalance);
+                state.lastInvestment = finalInvestment > state.currentBalance ? state.currentBalance : finalInvestment;
                 ui.updateLivePanel(state.operationNumber, totalOps, `$${state.lastInvestment.toFixed(2)}`);
             },
             logResult(isWin) {
                 const investment = state.lastInvestment;
-                if (investment > state.currentBalance) { this.end(false); return; }
-                const netResult = isWin ? investment * state.payoutRate : -investment;
-                state.currentBalance += netResult;
-                if (isWin) { state.winCount++; }
-                
-                state.history.push({ op: state.operationNumber, investment, result: isWin ? 'WIN' : 'LOSS', netResult, balance: state.currentBalance });
+                if (investment <= 0) { this.end(state.currentBalance > state.initialBalance); return; }
 
-                const activeStrategies = ['martingale', 'recovery_cycle'];
-                if (activeStrategies.includes(state.strategy)) {
-                    if (!isWin) {
-                        state.lossesToRecover += investment;
-                    } else {
-                        state.lossesToRecover = 0;
-                    }
+                let netResult = 0;
+                if (state.strategy === 'masaniello') {
+                    netResult = isWin ? investment * (state.payoutMasa - 1) : -investment;
+                } else {
+                    netResult = isWin ? investment * state.payoutOthers : -investment;
                 }
 
+                state.currentBalance += netResult;
+
+                if (state.strategy === 'masaniello') {
+                    state.masaniello.tradesDone++;
+                    if (isWin) state.masaniello.winsSoFar++;
+                } else if (state.strategy === 'martingale') {
+                    if (!isWin) { state.lossesToRecover += investment; } else { state.lossesToRecover = 0; }
+                }
+                
+                state.history.push({ op: state.operationNumber, investment, result: isWin ? 'WIN' : 'LOSS', netResult, balance: state.currentBalance });
                 ui.renderHistoryTable(state.history);
 
                 let isSessionOver = false;
-                if(state.strategy === 'recovery_cycle') {
-                    isSessionOver = (state.operationNumber >= 10);
+                const m = state.masaniello;
+                if (state.strategy === 'masaniello') {
+                    const remainingTrades = m.totalTrades - m.tradesDone;
+                    const remainingWins = m.expectedWins - m.winsSoFar;
+                    if (remainingWins <= 0) { isSessionOver = true; } 
+                    if (remainingWins > remainingTrades) { isSessionOver = true; }
+                    if (m.tradesDone >= m.totalTrades) { isSessionOver = true; }
+                } else {
+                    isSessionOver = (state.currentBalance <= state.stopLossTriggerAmount || state.currentBalance >= state.takeProfitTriggerAmount);
                 }
-                
-                isSessionOver = isSessionOver || (state.currentBalance <= state.stopLossTriggerAmount || state.currentBalance >= state.takeProfitTriggerAmount) || (state.currentBalance < state.minInvestment);
 
                 if (isSessionOver) {
                     this.end(state.currentBalance > state.initialBalance);
                 } else {
-                    state.operationNumber++; this.calculateNextInvestment();
+                    state.operationNumber++; 
+                    this.calculateNextInvestment();
                 }
             },
             end(isVictory) {
                 ui.elements.liveCard.classList.add('hidden'); ui.elements.historyCard.classList.add('hidden');
                 const profitLoss = state.currentBalance - state.initialBalance;
                 const totalOps = state.history.length;
-                const winCount = state.history.filter(op => op.result === 'WIN').length;
-                const winRate = totalOps > 0 ? (winCount / totalOps) * 100 : 0;
-                const resultText = isVictory ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
-                const resultColor = isVictory ? 'var(--color-win)' : 'var(--color-loss)';
-                ui.elements.journalSummary.innerHTML = `<p style="font-size: 1.4em;"><strong>Resultado:</strong> <span style="color: ${resultColor};">${resultText}</span></p><p>Balance Final: $${state.currentBalance.toFixed(2)} ($${profitLoss.toFixed(2)})</p><p><strong>Operaciones Totales:</strong> ${totalOps}</p><p><strong>Tasa de Aciertos:</strong> ${winRate.toFixed(1)}% (${winCount}G / ${totalOps - winCount}P)</p>`;
+                let resultText = isVictory ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
+                
+                if(state.strategy === 'masaniello') {
+                    resultText = state.masaniello.winsSoFar >= state.masaniello.expectedWins ? '¡Ciclo Exitoso!' : 'Ciclo Fallido';
+                }
+
+                const resultColor = (resultText === '¡Ciclo Exitoso!' || (state.strategy !== 'masaniello' && isVictory)) ? 'var(--color-win)' : 'var(--color-loss)';
+                ui.elements.journalSummary.innerHTML = `<p style="font-size: 1.4em;"><strong>Resultado:</strong> <span style="color: ${resultColor};">${resultText}</span></p><p>Balance Final: $${state.currentBalance.toFixed(2)} ($${profitLoss.toFixed(2)})</p><p><strong>Operaciones Totales:</strong> ${totalOps}</p>`;
                 ui.elements.journalCard.classList.remove('hidden');
-            },
-            saveSessionAndReset() {
-                let allSessions = JSON.parse(localStorage.getItem('tradingSessions')) || [];
-                const sessionData = { date: new Date().toISOString(), initialBalance: state.initialBalance, finalBalance: state.currentBalance, strategy: state.strategy, notes: ui.elements.journalNotes.value, history: state.history };
-                allSessions.push(sessionData);
-                localStorage.setItem('tradingSessions', JSON.stringify(allSessions));
-                this.reset();
             },
             reset() {
                 ui.elements.journalNotes.value = '';
@@ -386,32 +439,37 @@
                 ui.elements.historyCard.classList.add('hidden');
                 ui.elements.setupCard.classList.remove('hidden');
                 ui.showWelcomeScreen();
-            },
-            goBackToSetup() { ui.showSetup(); }
+            }
         };
         const app = {
             init() {
                 ui.elements.startSessionBtn.addEventListener('click', () => {
                     const initialBalance = ui.elements.initialBalanceInput.value;
-                    if (parseFloat(initialBalance) > 0) { ui.elements.balanceInput.value = initialBalance; ui.showDashboard(); } else { alert("Por favor, introduce un balance válido."); }
+                    if (parseFloat(initialBalance) > 0) { 
+                        ui.elements.balanceInput.value = initialBalance; 
+                        ui.showDashboard(); 
+                    } else { 
+                        alert("Por favor, introduce un balance válido."); 
+                    }
                 });
                 ui.elements.startBtn.addEventListener('click', () => sessionManager.start());
                 ui.elements.winBtn.addEventListener('click', () => sessionManager.logResult(true));
                 ui.elements.lossBtn.addEventListener('click', () => sessionManager.logResult(false));
-                ui.elements.saveSessionBtn.addEventListener('click', () => sessionManager.saveSessionAndReset());
-                ui.elements.backToSetupBtn.addEventListener('click', () => sessionManager.goBackToSetup());
+                document.getElementById('save-session-btn').addEventListener('click', () => sessionManager.reset());
+                ui.elements.backToSetupBtn.addEventListener('click', () => sessionManager.reset());
+                
                 ui.elements.strategySelect.addEventListener('change', (e) => {
                     const strategy = e.target.value;
-                    const isKelly = strategy === 'kelly';
-                    ui.elements.minInvestmentGroup.classList.toggle('hidden', isKelly);
-                    
+                    const isMasaniello = strategy === 'masaniello';
+                    ui.elements.masanielloGroup.classList.toggle('hidden', !isMasaniello);
+                    ui.elements.otherStrategiesGroup.classList.toggle('hidden', isMasaniello);
                     ui.updateStrategyInfo(strategy);
                 });
-                ui.updateStrategyInfo('kelly');
-                ui.elements.minInvestmentGroup.classList.add('hidden');
+                ui.updateStrategyInfo('masaniello');
             }
         };
         app.init();
     </script>
 </body>
 </html>
+
