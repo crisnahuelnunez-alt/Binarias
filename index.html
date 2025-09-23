@@ -18,10 +18,6 @@
         body {
             font-family: var(--font-family-main);
             background-color: var(--color-background-start);
-            background-image:
-                linear-gradient(135deg, var(--color-background-start) 0%, var(--color-background-mid) 50%, var(--color-background-end) 100%),
-                url('assets/Gemini_Generated_Image_iogzlriogzlriogz.png');
-            background-size: cover; background-position: center center; background-blend-mode: overlay;
             color: var(--color-text-light); min-height: 100vh; display: flex;
             justify-content: center; align-items: center; font-size: 16px;
             line-height: 1.6; padding: 30px;
@@ -31,7 +27,6 @@
         #welcome-screen h1 {
             font-size: 3.5em; font-weight: 800; background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 15px rgba(0, 212, 255, 0.3); margin-bottom: 10px;
         }
         #welcome-screen p { font-size: 1.5em; color: var(--color-tertiary); margin-bottom: 40px; font-weight: 300; }
         .container { max-width: 960px; width: 100%; margin: 0 auto; }
@@ -44,7 +39,6 @@
         .card h2 {
             margin-bottom: 30px; color: var(--color-primary); font-size: 1.8em; font-weight: 700;
             border-bottom: 1px solid var(--color-card-border); padding-bottom: 18px;
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
         }
         .input-group { margin-bottom: 25px; width: 100%; }
         .input-group label {
@@ -52,58 +46,41 @@
             font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.5px;
         }
         .input-group input, .input-group select, .input-group textarea {
-            width: 100%; padding: 16px; border: 1px solid transparent; border-radius: var(--border-radius-sm);
+            width: 100%; padding: 16px; border-radius: var(--border-radius-sm);
             background: var(--color-input-background); color: var(--color-text-light);
-            font-size: 1.05em; transition: border-color 0.3s, box-shadow 0.3s; font-family: var(--font-family-main);
+            font-size: 1.05em; border: 1px solid transparent; 
         }
-        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+        .input-group input:focus, .input-group select:focus {
             outline: none; border-color: var(--color-primary);
-            box-shadow: 0 0 18px rgba(0, 212, 255, 0.3);
         }
         .input-with-symbol { position: relative; }
-        .input-with-symbol span { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--color-tertiary); font-size: 1.1em; font-weight: 600; pointer-events: none; }
+        .input-with-symbol span { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--color-tertiary);}
         .input-with-symbol input { padding-left: 40px !important; }
         .split-inputs { display: flex; gap: 25px; flex-wrap: wrap; }
-        .split-inputs .input-group { flex: 1; min-width: 280px; }
+        .split-inputs .input-group { flex: 1; min-width: 250px; }
         .btn, .btn-primary, .btn-secondary {
-            color: var(--color-text-dark); border: none; padding: 18px 35px; border-radius: var(--border-radius-sm);
-            font-size: 1.15em; font-weight: 700; cursor: pointer; width: 100%; margin-top: 15px;
-            text-transform: uppercase; letter-spacing: 0.8px;
+            border: none; padding: 18px 35px; border-radius: var(--border-radius-sm);
+            font-size: 1.15em; font-weight: 700; cursor: pointer; width: 100%;
         }
-        .btn-primary { background: linear-gradient(45deg, var(--color-primary), var(--color-secondary)); }
+        .btn-primary { background: linear-gradient(45deg, var(--color-primary), var(--color-secondary)); color: var(--color-text-dark); }
         .btn-secondary { background: #6c757d; color: white; font-size: 0.8em; padding: 8px 15px; width: auto; margin-top: 0; }
         .btn-win { background-color: var(--color-win); color: white; }
         .btn-loss { background-color: var(--color-loss); color: white; }
-        .investment-amount { font-size: 4.5em; font-weight: 800; background: linear-gradient(45deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; line-height: 1.2; text-shadow: 0 0 20px rgba(0, 212, 255, 0.5); text-align: center; }
+        .investment-amount { font-size: 4.5em; font-weight: 800; background: linear-gradient(45deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; line-height: 1.2; text-align: center; }
         .action-buttons { display: flex; gap: 20px; margin-top: 20px; }
-        #phase-display { font-size: 1em; color: var(--color-warning); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; background: rgba(0, 0, 0, 0.2); border-radius: var(--border-radius-main); overflow: hidden; }
+        #phase-display { font-size: 1em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 700;}
+        table { width: 100%; border-collapse: collapse; }
         th, td { padding: 18px; text-align: center; border-bottom: 1px solid var(--color-card-border); }
-        th { background: rgba(0, 0, 0, 0.3); color: var(--color-primary); font-weight: 700; }
+        th { color: var(--color-primary); }
         .win-row { background: rgba(0, 255, 136, 0.1); }
         .loss-row { background: rgba(255, 0, 68, 0.1); }
-        .warning-text {
-            color: var(--color-warning);
-            font-size: 0.9em;
-            border: 1px solid var(--color-warning);
-            padding: 10px 15px;
-            border-radius: var(--border-radius-sm);
-            margin-top: 10px;
-            margin-bottom: 30px;
-            background-color: rgba(255, 193, 7, 0.05);
-        }
-        @media (max-width: 768px) {
-            .investment-amount { font-size: 5em; }
-            .action-buttons { flex-direction: column; }
-            .action-buttons .btn { width: 100%; padding: 20px; font-size: 1.2em; }
-        }
+        .warning-text { color: var(--color-warning); font-size: 0.9em; border: 1px solid var(--color-warning); padding: 10px 15px; border-radius: var(--border-radius-sm); margin-bottom: 30px;}
     </style>
 </head>
 <body>
     <div id="welcome-screen">
         <h1>Gestión de Riesgo Pro</h1>
         <p>Dominando Binarias</p>
-        
         <div class="input-group">
             <label for="initial-balance">¿Cuál es tu capital para la sesión?</label>
             <div class="input-with-symbol">
@@ -111,11 +88,7 @@
                 <input type="number" id="initial-balance" placeholder="Ej: 100" min="1">
             </div>
         </div>
-        
-        <div class="warning-text">
-            ⚠️ Recuerda: Tu capital está en riesgo. Opera con responsabilidad.
-        </div>
-
+        <div class="warning-text">⚠️ Recuerda: Tu capital está en riesgo. Opera con responsabilidad.</div>
         <button class="btn-primary" id="start-session-btn">Iniciar Sesión</button>
     </div>
 
@@ -125,351 +98,292 @@
             <div class="input-group">
                 <label for="strategy">Estrategia de Gestión de Riesgo</label>
                 <select id="strategy">
+                    <option value="gemhuel">Estrategia Gemhuel</option>
                     <option value="masaniello">Progresión de Ciclo (Masaniello)</option>
-                    <option value="martingale">Martingala (Clásica)</option>
-                    <option value="kelly">Criterio de Kelly (Óptimo)</option>
                 </select>
             </div>
             <div id="strategy-info-box" style="margin-bottom: 25px; padding: 15px; border-left: 4px solid; border-radius: 8px; font-size: 0.9em; line-height: 1.5;"></div>
-
-            <div class="input-group">
-                <label for="balance">Balance de Sesión</label>
-                <div class="input-with-symbol">
-                    <span>$</span>
-                    <input type="number" id="balance" readonly>
-                </div>
-            </div>
-            
-            <div id="masaniello-group">
+            <div id="masaniello-group" class="hidden">
                 <div class="split-inputs">
-                    <div class="input-group">
-                        <label for="total-trades">Cantidad de Operaciones</label>
-                        <input type="number" id="total-trades" value="10" min="2">
-                    </div>
-                    <div class="input-group">
-                        <label for="expected-wins">Ganadas Esperadas</label>
-                        <input type="number" id="expected-wins" value="4" min="1">
-                    </div>
+                    <div class="input-group"><label for="total-trades-masa">Total Operaciones</label><input type="number" id="total-trades-masa" value="10"></div>
+                    <div class="input-group"><label for="expected-wins">Ganadas Esperadas</label><input type="number" id="expected-wins" value="4"></div>
                 </div>
             </div>
-
-            <div id="other-strategies-group" class="hidden">
-                <div id="standard-params-group">
-                    <div class="split-inputs">
-                        <div class="input-group">
-                            <label for="sessionProfitGoal">Take Profit (%)</label>
-                            <input type="number" id="sessionProfitGoal" value="20" min="1">
-                        </div>
-                        <div class="input-group">
-                            <label for="stopLossPercent">Stop-Loss (%)</label>
-                            <input type="number" id="stopLossPercent" value="25" min="1">
-                        </div>
-                    </div>
+            <div id="gemhuel-group">
+                <div class="split-inputs">
+                    <div class="input-group"><label for="accumulation-investment-percent">Inversión Acumulación (%)</label><input type="number" id="accumulation-investment-percent" value="2"></div>
+                    <div class="input-group"><label for="accumulation-goal-percent">Meta Acumulación (%)</label><input type="number" id="accumulation-goal-percent" value="10"></div>
+                    <div class="input-group"><label for="attack-trades">Operaciones de Ataque</label><input type="number" id="attack-trades" value="3"></div>
                 </div>
             </div>
-
             <div class="split-inputs">
-                <div class="input-group">
-                    <label for="payoutRate">Payout del Broker (%)</label>
-                    <input type="number" id="payoutRate" value="87" step="0.1">
-                </div>
+                <div class="input-group"><label for="payoutRate">Payout del Broker (%)</label><input type="number" id="payoutRate" value="87"></div>
                 <div class="input-group" style="justify-content: center; align-items: center; display: flex; padding-top: 15px;">
-                    <input type="checkbox" id="allowDecimals" checked style="width: auto; height: 18px; accent-color: var(--color-primary); margin-right: 12px;">
-                    <label for="allowDecimals" style="margin-bottom: 0; text-transform: none; font-weight: 400; color: var(--color-text-light); cursor: pointer;">
-                        Permitir decimales
-                    </label>
+                    <input type="checkbox" id="allowDecimals" checked style="width: auto; height: 18px; margin-right: 12px;"><label for="allowDecimals" style="margin: 0;">Permitir decimales</label>
                 </div>
             </div>
-            
             <button class="btn-primary" id="startBtn">▶️ Comenzar Operativa</button>
         </div>
         <div id="live-card" class="card hidden">
-            <h2>
-                <span><span class="icon">🔴</span> Panel de Operación</span>
-                <button id="back-to-setup-btn" class="btn-secondary">⬅️ Volver a Configurar</button>
-            </h2>
-            <div id="live-panel-content" style="text-align: center;">
-                <h3 id="operation-label"></h3>
+            <h2>Panel de Operación</h2>
+            <div style="text-align: center;">
                 <div id="phase-display"></div>
+                <h3 id="operation-label"></h3>
                 <div id="investment-amount" class="investment-amount"></div>
-                <div class="action-buttons">
-                    <button class="btn btn-win" id="winBtn">Gané ✅</button>
-                    <button class="btn btn-loss" id="lossBtn">Perdí ❌</button>
-                </div>
+                <div class="action-buttons"><button class="btn btn-win" id="winBtn">Gané ✅</button><button class="btn btn-loss" id="lossBtn">Perdí ❌</button></div>
             </div>
         </div>
         <div id="history-card" class="card hidden">
-            <h2><span class="icon">📋</span> Historial de la Sesión</h2>
+            <h2>Historial de la Sesión</h2>
             <div id="tableContent"></div>
         </div>
         <div id="journal-card" class="card hidden">
-            <h2><span class="icon">✍️</span> Análisis de la Sesión</h2>
+            <h2>Análisis de la Sesión</h2>
             <div id="journal-summary" style="margin-bottom: 25px;"></div>
-            <div class="input-group">
-                <label for="journal-notes">Mis Notas de la Sesión</label>
-                <textarea id="journal-notes" rows="4" placeholder="¿Qué aprendiste hoy? ¿Seguiste tu plan al 100%?"></textarea>
-            </div>
-            <button class="btn-primary" id="save-session-btn">Guardar Sesión y Volver al Inicio</button>
+            <button class="btn-primary" id="save-session-btn">Volver al Inicio</button>
         </div>
     </div>
 
     <script>
-        const state = {
-            strategy: 'masaniello',
-            payoutMasa: 1.87, payoutOthers: 0.87,
-            initialBalance: 0, minInvestment: 0.01,
-            sessionProfitGoal: 20, stopLossPercent: 25, stopLossTriggerAmount: 0,
-            takeProfitTriggerAmount: 0, currentBalance: 0, operationNumber: 1, 
-            lastInvestment: 0, history: [], lossesToRecover: 0,
-            masaniello: { totalTrades: 0, expectedWins: 0, winsSoFar: 0, tradesDone: 0 }
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const App = {
+                state: {},
 
-        const masanielloMath = {
-            calculateFirstInvestment(capital, totalTrades, expectedWins, payout) {
-                let C = 1;
-                let T = 0;
-                let E = 0;
-                for (let i = 0; i <= totalTrades - expectedWins; i++) {
-                    E = expectedWins + i;
-                    T += this.combinations(E - 1, expectedWins - 1) * Math.pow(payout - 1, expectedWins) * Math.pow(1, i);
-                }
-                C = T / Math.pow(payout, totalTrades);
-                const firstBet = (capital * C) / (1 - C);
-                return firstBet;
-            },
-            combinations(n, k) {
-                if (k < 0 || k > n) return 0;
-                if (k === 0 || k === n) return 1;
-                if (k > n / 2) k = n - k;
-                let res = 1;
-                for (let i = 1; i <= k; i++) {
-                    res = res * (n - i + 1) / i;
-                }
-                return res;
-            }
-        };
+                ui: {
+                    welcomeScreen: document.getElementById('welcome-screen'),
+                    dashboard: document.getElementById('dashboard'),
+                    setupCard: document.getElementById('setup-card'),
+                    liveCard: document.getElementById('live-card'),
+                    historyCard: document.getElementById('history-card'),
+                    journalCard: document.getElementById('journal-card'),
+                    startSessionBtn: document.getElementById('start-session-btn'),
+                    startBtn: document.getElementById('startBtn'),
+                    winBtn: document.getElementById('winBtn'),
+                    lossBtn: document.getElementById('lossBtn'),
+                    saveSessionBtn: document.getElementById('save-session-btn'),
+                    initialBalanceInput: document.getElementById('initial-balance'),
+                    operationLabel: document.getElementById('operation-label'),
+                    investmentAmount: document.getElementById('investment-amount'),
+                    tableContent: document.getElementById('tableContent'),
+                    journalSummary: document.getElementById('journal-summary'),
+                    strategySelect: document.getElementById('strategy'),
+                    strategyInfoBox: document.getElementById('strategy-info-box'),
+                    masanielloGroup: document.getElementById('masaniello-group'),
+                    gemhuelGroup: document.getElementById('gemhuel-group'),
+                    allowDecimals: document.getElementById('allowDecimals'),
+                    payoutRateInput: document.getElementById('payoutRate'),
+                    phaseDisplay: document.getElementById('phase-display'),
+                },
 
-        const ui = {
-            elements: {
-                welcomeScreen: document.getElementById('welcome-screen'), dashboard: document.getElementById('dashboard'),
-                startSessionBtn: document.getElementById('start-session-btn'), initialBalanceInput: document.getElementById('initial-balance'),
-                balanceInput: document.getElementById('balance'), setupCard: document.getElementById('setup-card'),
-                liveCard: document.getElementById('live-card'), historyCard: document.getElementById('history-card'),
-                operationLabel: document.getElementById('operation-label'), investmentAmount: document.getElementById('investment-amount'),
-                tableContent: document.getElementById('tableContent'), strategySelect: document.getElementById('strategy'),
-                strategyInfoBox: document.getElementById('strategy-info-box'),
-                startBtn: document.getElementById('startBtn'), winBtn: document.getElementById('winBtn'),
-                lossBtn: document.getElementById('lossBtn'),
-                journalCard: document.getElementById('journal-card'), journalSummary: document.getElementById('journal-summary'),
-                journalNotes: document.getElementById('journal-notes'),
-                saveSessionBtn: document.getElementById('save-session-btn'),
-                backToSetupBtn: document.getElementById('back-to-setup-btn'),
-                phaseDisplay: document.getElementById('phase-display'),
-                allowDecimals: document.getElementById('allowDecimals'),
-                masanielloGroup: document.getElementById('masaniello-group'),
-                otherStrategiesGroup: document.getElementById('other-strategies-group')
-            },
-            showDashboard() { this.elements.welcomeScreen.classList.add('hidden'); this.elements.dashboard.classList.remove('hidden'); document.body.style.alignItems = 'flex-start'; },
-            showWelcomeScreen() {
-                this.elements.dashboard.classList.add('hidden');
-                this.elements.welcomeScreen.classList.remove('hidden');
-                document.body.style.alignItems = 'center';
-            },
-            showSetup() {
-                this.elements.liveCard.classList.add('hidden');
-                this.elements.historyCard.classList.add('hidden');
-                this.elements.journalCard.classList.add('hidden');
-                this.elements.setupCard.classList.remove('hidden');
-            },
-            updateLivePanel(opNum, totalOps, amountText) {
-                this.elements.operationLabel.innerText = `OPERACIÓN #${opNum} de ${totalOps}`;
-                this.elements.investmentAmount.innerText = amountText;
-                this.elements.phaseDisplay.innerText = '';
-            },
-            renderHistoryTable(history) {
-                let tableHTML = `<table><thead><tr><th>Op#</th><th>Invertido</th><th>Resultado</th><th>G/P</th><th>Balance</th></tr></thead><tbody>`;
-                history.forEach(op => {
-                    const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
-                    const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
-                    tableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
-                });
-                this.elements.tableContent.innerHTML = tableHTML + '</tbody></table>';
-            },
-            showLiveMode() { this.elements.setupCard.classList.add('hidden'); this.elements.liveCard.classList.remove('hidden'); this.elements.historyCard.classList.remove('hidden'); },
-            updateStrategyInfo(strategy) {
-                let info = {}; const infoBox = this.elements.strategyInfoBox;
-                switch (strategy) {
-                    case 'masaniello': info = { borderColor: 'var(--color-primary)', title: '<strong>Riesgo:</strong> Calculado', description: '<strong>Ideal para:</strong> Alcanzar un objetivo con una tasa de aciertos predefinida.', warning: '<strong>Advertencia:</strong> Si fallas más de lo permitido, pierdes todo el capital del ciclo.' }; break;
-                    case 'martingale': info = { borderColor: 'var(--color-warning)', title: '<strong>Riesgo:</strong> Alto', description: '<strong>Ideal para:</strong> Recuperación de pérdidas simple.', warning: '<strong>Advertencia:</strong> Peligroso en rachas de pérdidas.' }; break;
-                    case 'kelly': info = { borderColor: 'var(--color-secondary)', title: '<strong>Riesgo:</strong> Moderado', description: '<strong>Ideal para:</strong> Crecimiento óptimo a largo plazo.', warning: '<strong>Advertencia:</strong> Fija una tasa de aciertos del 60%.' }; break;
-                }
-                infoBox.style.borderColor = info.borderColor; infoBox.innerHTML = `<p>${info.title}</p><p>${info.description}</p><p style="opacity: 0.8;">${info.warning}</p>`;
-            }
-        };
-        const sessionManager = {
-            start() {
-                try {
-                    state.strategy = ui.elements.strategySelect.value;
-                    state.initialBalance = parseFloat(ui.elements.initialBalanceInput.value);
-                    state.currentBalance = state.initialBalance;
-                    const payoutInput = parseFloat(document.getElementById('payoutRate').value);
-                    state.payoutMasa = 1 + (payoutInput / 100);
-                    state.payoutOthers = payoutInput / 100;
+                math: {
+                    combinations(n, k) { if (k < 0 || k > n) return 0; if (k === 0 || k === n) return 1; if (k > n / 2) k = n - k; let r = 1; for (let i = 1; i <= k; i++) { r = r * (n - i + 1) / i; } return r; },
+                    calculateFirstInvestment(K, N, E, Q) { let C = 1, T = 0, Ev = 0; for (let i = 0; i <= N - E; i++) { Ev = E + i; T += this.combinations(Ev - 1, E - 1) * Math.pow(Q - 1, E) * Math.pow(1, i); } C = T / Math.pow(Q, N); if (C >= 1) return K; return (K * C) / (1 - C); }
+                },
 
-                    if (state.strategy === 'masaniello') {
-                        state.masaniello.totalTrades = parseInt(document.getElementById('total-trades').value);
-                        state.masaniello.expectedWins = parseInt(document.getElementById('expected-wins').value);
-                        state.masaniello.tradesDone = 0;
-                        state.masaniello.winsSoFar = 0;
-                        if (state.masaniello.expectedWins >= state.masaniello.totalTrades) {
-                            alert("Las ganadas esperadas deben ser menores que el total de operaciones.");
-                            return;
-                        }
+                init() {
+                    this.resetApp();
+                    this.bindEvents();
+                    this.updateUI();
+                },
+                
+                resetState() {
+                    this.state = {
+                        initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
+                        strategy: 'gemhuel', payout: 0.87,
+                        gemhuel: { phase: 'Acumulación', accumulationGoal: 0, profitForAttack: 0, attackTradesCount: 0, attackInvestment: 0, accumulationInvestment: 0, attackTrades: 3 },
+                        masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
+                    };
+                },
+
+                bindEvents() {
+                    this.ui.startSessionBtn.addEventListener('click', () => this.initSession());
+                    this.ui.startBtn.addEventListener('click', () => this.startTrading());
+                    this.ui.winBtn.addEventListener('click', () => this.logResult(true));
+                    this.ui.lossBtn.addEventListener('click', () => this.logResult(false));
+                    this.ui.saveSessionBtn.addEventListener('click', () => this.resetApp());
+                    this.ui.strategySelect.addEventListener('change', () => this.updateUI());
+                },
+                
+                resetApp() {
+                    this.resetState();
+                    this.ui.welcomeScreen.classList.remove('hidden');
+                    this.ui.dashboard.classList.add('hidden');
+                    this.ui.setupCard.classList.remove('hidden');
+                    this.ui.liveCard.classList.add('hidden');
+                    this.ui.historyCard.classList.add('hidden');
+                    this.ui.journalCard.classList.add('hidden');
+                    this.ui.initialBalanceInput.value = '';
+                    this.ui.tableContent.innerHTML = '';
+                    this.updateUI();
+                },
+
+                initSession() {
+                    const balance = parseFloat(this.ui.initialBalanceInput.value);
+                    if (balance > 0) {
+                        this.resetState();
+                        this.state.initialBalance = balance;
+                        this.state.currentBalance = balance;
+                        this.ui.dashboard.classList.remove('hidden');
+                        this.ui.welcomeScreen.classList.add('hidden');
+                    } else { alert("Introduce un balance válido."); }
+                },
+
+                startTrading() {
+                    this.state.strategy = this.ui.strategySelect.value;
+                    this.state.payout = parseFloat(this.ui.payoutRateInput.value) / 100;
+                    
+                    if (this.state.strategy === 'masaniello') {
+                        this.state.masaniello.totalTrades = parseInt(document.getElementById('total-trades-masa').value);
+                        this.state.masaniello.expectedWins = parseInt(document.getElementById('expected-wins').value);
                     } else {
-                        state.minInvestment = 0.01;
-                        state.sessionProfitGoal = parseFloat(document.getElementById('sessionProfitGoal').value);
-                        state.stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
-                        state.stopLossTriggerAmount = state.initialBalance * (1 - (state.stopLossPercent / 100));
-                        state.takeProfitTriggerAmount = state.initialBalance * (1 + (state.sessionProfitGoal / 100));
+                        const accumulationInvestmentPercent = parseFloat(document.getElementById('accumulation-investment-percent').value);
+                        const accumulationGoalPercent = parseFloat(document.getElementById('accumulation-goal-percent').value);
+                        this.state.gemhuel.accumulationInvestment = this.state.initialBalance * (accumulationInvestmentPercent / 100);
+                        this.state.gemhuel.accumulationGoal = this.state.initialBalance * (1 + accumulationGoalPercent / 100);
+                        this.state.gemhuel.attackTrades = parseInt(document.getElementById('attack-trades').value);
                     }
-                } catch (e) { alert('Error en la configuración: ' + e.message); return; }
-
-                state.operationNumber = 1; 
-                state.history = []; 
-                state.lossesToRecover = 0;
-                ui.showLiveMode(); 
-                this.calculateNextInvestment();
-            },
-            calculateNextInvestment() {
-                let finalInvestment = 0;
-                let totalOps = '∞';
-                
-                if (state.strategy === 'masaniello') {
-                    const m = state.masaniello;
-                    totalOps = m.totalTrades;
-                    if (m.tradesDone === 0) {
-                        m.initialBet = masanielloMath.calculateFirstInvestment(state.initialBalance, m.totalTrades, m.expectedWins, state.payoutMasa);
-                        finalInvestment = m.initialBet;
-                    } else {
-                        const lastOp = state.history[state.history.length - 1];
-                        if (lastOp.result === 'WIN') {
-                            finalInvestment = state.lastInvestment * state.payoutMasa / state.payoutMasa; // Se mantiene igual
-                        } else { // LOSS
-                             finalInvestment = state.lastInvestment * (m.totalTrades - m.tradesDone + 1) / (m.totalTrades - m.expectedWins - (m.tradesDone - m.winsSoFar));
-                        }
-                    }
-                } else {
-                    if (state.strategy === 'kelly') {
-                        const kellyFraction = 0.60 - ((1 - 0.60) / state.payoutOthers);
-                        finalInvestment = (kellyFraction > 0) ? state.currentBalance * kellyFraction : state.minInvestment;
-                    } else if (state.strategy === 'martingale') {
-                        const targetProfit = state.initialBalance * 0.02; 
-                        finalInvestment = (state.lossesToRecover + targetProfit) / state.payoutOthers;
-                    }
-                    finalInvestment = Math.max(finalInvestment, state.minInvestment);
-                }
-                
-                if (!ui.elements.allowDecimals.checked) {
-                    finalInvestment = Math.round(finalInvestment);
-                }
-
-                state.lastInvestment = finalInvestment > state.currentBalance ? state.currentBalance : finalInvestment;
-                ui.updateLivePanel(state.operationNumber, totalOps, `$${state.lastInvestment.toFixed(2)}`);
-            },
-            logResult(isWin) {
-                const investment = state.lastInvestment;
-                if (investment <= 0) { this.end(state.currentBalance > state.initialBalance); return; }
-
-                let netResult = 0;
-                if (state.strategy === 'masaniello') {
-                    netResult = isWin ? investment * (state.payoutMasa - 1) : -investment;
-                } else {
-                    netResult = isWin ? investment * state.payoutOthers : -investment;
-                }
-
-                state.currentBalance += netResult;
-
-                if (state.strategy === 'masaniello') {
-                    state.masaniello.tradesDone++;
-                    if (isWin) state.masaniello.winsSoFar++;
-                } else if (state.strategy === 'martingale') {
-                    if (!isWin) { state.lossesToRecover += investment; } else { state.lossesToRecover = 0; }
-                }
-                
-                state.history.push({ op: state.operationNumber, investment, result: isWin ? 'WIN' : 'LOSS', netResult, balance: state.currentBalance });
-                ui.renderHistoryTable(state.history);
-
-                let isSessionOver = false;
-                const m = state.masaniello;
-                if (state.strategy === 'masaniello') {
-                    const remainingTrades = m.totalTrades - m.tradesDone;
-                    const remainingWins = m.expectedWins - m.winsSoFar;
-                    if (remainingWins <= 0) { isSessionOver = true; } 
-                    if (remainingWins > remainingTrades) { isSessionOver = true; }
-                    if (m.tradesDone >= m.totalTrades) { isSessionOver = true; }
-                } else {
-                    isSessionOver = (state.currentBalance <= state.stopLossTriggerAmount || state.currentBalance >= state.takeProfitTriggerAmount);
-                }
-
-                if (isSessionOver) {
-                    this.end(state.currentBalance > state.initialBalance);
-                } else {
-                    state.operationNumber++; 
+                    
+                    this.ui.liveCard.classList.remove('hidden');
+                    this.ui.historyCard.classList.remove('hidden');
+                    this.ui.setupCard.classList.add('hidden');
                     this.calculateNextInvestment();
-                }
-            },
-            end(isVictory) {
-                ui.elements.liveCard.classList.add('hidden'); ui.elements.historyCard.classList.add('hidden');
-                const profitLoss = state.currentBalance - state.initialBalance;
-                const totalOps = state.history.length;
-                let resultText = isVictory ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
-                
-                if(state.strategy === 'masaniello') {
-                    resultText = state.masaniello.winsSoFar >= state.masaniello.expectedWins ? '¡Ciclo Exitoso!' : 'Ciclo Fallido';
-                }
+                },
 
-                const resultColor = (resultText === '¡Ciclo Exitoso!' || (state.strategy !== 'masaniello' && isVictory)) ? 'var(--color-win)' : 'var(--color-loss)';
-                ui.elements.journalSummary.innerHTML = `<p style="font-size: 1.4em;"><strong>Resultado:</strong> <span style="color: ${resultColor};">${resultText}</span></p><p>Balance Final: $${state.currentBalance.toFixed(2)} ($${profitLoss.toFixed(2)})</p><p><strong>Operaciones Totales:</strong> ${totalOps}</p>`;
-                ui.elements.journalCard.classList.remove('hidden');
-            },
-            reset() {
-                ui.elements.journalNotes.value = '';
-                ui.elements.journalCard.classList.add('hidden');
-                ui.elements.liveCard.classList.add('hidden');
-                ui.elements.historyCard.classList.add('hidden');
-                ui.elements.setupCard.classList.remove('hidden');
-                ui.showWelcomeScreen();
-            }
-        };
-        const app = {
-            init() {
-                ui.elements.startSessionBtn.addEventListener('click', () => {
-                    const initialBalance = ui.elements.initialBalanceInput.value;
-                    if (parseFloat(initialBalance) > 0) { 
-                        ui.elements.balanceInput.value = initialBalance; 
-                        ui.showDashboard(); 
-                    } else { 
-                        alert("Por favor, introduce un balance válido."); 
+                calculateNextInvestment() {
+                    let investment = 0;
+                    
+                    if (this.state.strategy === 'gemhuel') {
+                        const g = this.state.gemhuel;
+                        if (g.phase === 'Acumulación') {
+                            investment = g.accumulationInvestment;
+                        } else { // Ataque
+                            investment = g.attackInvestment;
+                        }
+                    } else { // Masaniello
+                        const m = this.state.masaniello;
+                        const payoutMasa = 1 + this.state.payout;
+                        if (m.tradesDone === 0) {
+                            investment = this.math.calculateFirstInvestment(this.state.initialBalance, m.totalTrades, m.expectedWins, payoutMasa);
+                        } else {
+                            const lastOp = this.state.history[this.state.history.length - 1];
+                            investment = lastOp.result === 'WIN' ? this.state.lastInvestment : this.state.lastInvestment * (m.totalTrades - m.tradesDone + 1) / (m.totalTrades - m.expectedWins - (m.tradesDone - m.winsSoFar));
+                        }
                     }
-                });
-                ui.elements.startBtn.addEventListener('click', () => sessionManager.start());
-                ui.elements.winBtn.addEventListener('click', () => sessionManager.logResult(true));
-                ui.elements.lossBtn.addEventListener('click', () => sessionManager.logResult(false));
-                document.getElementById('save-session-btn').addEventListener('click', () => sessionManager.reset());
-                ui.elements.backToSetupBtn.addEventListener('click', () => sessionManager.reset());
+
+                    if (!this.ui.allowDecimals.checked) investment = Math.round(investment);
+                    this.state.lastInvestment = investment > this.state.currentBalance ? this.state.currentBalance : investment;
+                    
+                    this.updateLivePanel();
+                },
                 
-                ui.elements.strategySelect.addEventListener('change', (e) => {
-                    const strategy = e.target.value;
-                    const isMasaniello = strategy === 'masaniello';
-                    ui.elements.masanielloGroup.classList.toggle('hidden', !isMasaniello);
-                    ui.elements.otherStrategiesGroup.classList.toggle('hidden', isMasaniello);
-                    ui.updateStrategyInfo(strategy);
-                });
-                ui.updateStrategyInfo('masaniello');
-            }
-        };
-        app.init();
+                logResult(isWin) {
+                    const investment = this.state.lastInvestment;
+                    if (investment < 0.01 && this.state.operationNumber > 1) { this.endSession(); return; }
+
+                    const payout = this.state.strategy === 'masaniello' ? 1 + this.state.payout : this.state.payout;
+                    const netResult = isWin ? investment * (this.state.strategy === 'masaniello' ? payout - 1 : payout) : -investment;
+                    this.state.currentBalance += netResult;
+
+                    this.state.history.push({ op: this.state.operationNumber, investment, result: isWin ? 'WIN' : 'LOSS', netResult, balance: this.state.currentBalance });
+
+                    // --- STRATEGY-SPECIFIC LOGIC ---
+                    if (this.state.strategy === 'gemhuel') {
+                        const g = this.state.gemhuel;
+                        if (g.phase === 'Acumulación' && this.state.currentBalance >= g.accumulationGoal) {
+                            g.phase = 'Ataque';
+                            g.profitForAttack = this.state.currentBalance - this.state.initialBalance;
+                            g.attackInvestment = g.profitForAttack / g.attackTrades;
+                            g.attackTradesCount = 0;
+                        } else if (g.phase === 'Ataque') {
+                            g.attackTradesCount++;
+                            if (!isWin || g.attackTradesCount >= g.attackTrades) {
+                                g.phase = 'Acumulación'; // Cycle ends, reset to accumulation
+                            }
+                        }
+                    } else { // Masaniello
+                        this.state.masaniello.tradesDone++;
+                        if (isWin) this.state.masaniello.winsSoFar++;
+                    }
+                    
+                    this.renderHistory();
+
+                    let sessionOver = false;
+                    if (this.state.strategy === 'masaniello') {
+                        const m = this.state.masaniello;
+                        const remTrades = m.totalTrades - m.tradesDone;
+                        const remWins = m.expectedWins - m.winsSoFar;
+                        if (remWins <= 0 || remWins > remTrades || m.tradesDone >= m.totalTrades) sessionOver = true;
+                    }
+                    if (this.state.currentBalance <= 0) sessionOver = true;
+                    
+                    if (sessionOver) {
+                        this.endSession();
+                    } else {
+                        this.state.operationNumber++; 
+                        this.calculateNextInvestment();
+                    }
+                },
+
+                endSession() {
+                    const isVictory = this.state.currentBalance > this.state.initialBalance;
+                    this.ui.liveCard.classList.add('hidden');
+                    this.ui.historyCard.classList.add('hidden');
+                    const profitLoss = this.state.currentBalance - this.state.initialBalance;
+                    let resultText = isVictory ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
+                    
+                    if(this.state.strategy === 'masaniello') {
+                        resultText = this.state.masaniello.winsSoFar >= this.state.masaniello.expectedWins ? '¡Ciclo Masaniello Exitoso!' : 'Ciclo Masaniello Fallido';
+                    }
+
+                    const resultColor = (resultText.includes('Exitoso') || resultText.includes('Ganancia')) ? 'var(--color-win)' : 'var(--color-loss)';
+                    this.ui.journalSummary.innerHTML = `<p style="font-size: 1.4em;"><strong>Resultado:</strong> <span style="color: ${resultColor};">${resultText}</span></p><p>Balance Final: $${this.state.currentBalance.toFixed(2)} ($${profitLoss.toFixed(2)})</p><p><strong>Operaciones Totales:</strong> ${this.state.history.length}</p>`;
+                    this.ui.journalCard.classList.remove('hidden');
+                },
+
+                renderHistory() {
+                    let tableHTML = `<table><thead><tr><th>Op#</th><th>Invertido</th><th>Resultado</th><th>G/P</th><th>Balance</th></tr></thead><tbody>`;
+                    for (const op of this.state.history) {
+                        const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
+                        const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
+                        tableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
+                    }
+                    this.ui.tableContent.innerHTML = tableHTML + '</tbody></table>';
+                },
+                
+                updateLivePanel() {
+                    let totalOps = "∞";
+                    if (this.state.strategy === 'masaniello') totalOps = this.state.masaniello.totalTrades;
+                    
+                    this.ui.operationLabel.innerText = `OPERACIÓN #${this.state.operationNumber}`;
+                    if (this.state.strategy === 'masaniello') this.ui.operationLabel.innerText += ` de ${totalOps}`;
+                    
+                    this.ui.investmentAmount.innerText = `$${this.state.lastInvestment.toFixed(2)}`;
+
+                    if (this.state.strategy === 'gemhuel') {
+                        const g = this.state.gemhuel;
+                        this.ui.phaseDisplay.innerText = `FASE: ${g.phase}`;
+                        this.ui.phaseDisplay.style.color = g.phase === 'Ataque' ? 'var(--color-secondary)' : 'var(--color-warning)';
+                    } else {
+                        this.ui.phaseDisplay.innerText = '';
+                    }
+                },
+
+                updateUI() {
+                    const strategy = this.ui.strategySelect.value;
+                    const info = {
+                        'gemhuel': { borderColor: 'var(--color-secondary)', title: '<strong>Riesgo:</strong> Inteligente', description: '<strong>Ideal para:</strong> Crecer reinvirtiendo ganancias. El riesgo solo aumenta después de ganar.', warning: '<strong>Advertencia:</strong> Mantén la disciplina y respeta tu plan de ciclo.' },
+                        'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>Riesgo:</strong> Calculado', description: '<strong>Ideal para:</strong> Alcanzar un objetivo con una tasa de aciertos predefinida.', warning: '<strong>Advertencia:</strong> Si fallas más de lo permitido, pierdes todo el capital del ciclo.' }
+                    };
+                    this.ui.strategyInfoBox.style.borderColor = info[strategy].borderColor;
+                    this.ui.strategyInfoBox.innerHTML = `<p>${info[strategy].title}</p><p>${info[strategy].description}</p><p style="opacity: 0.8;">${info[strategy].warning}</p>`;
+                    this.ui.masanielloGroup.classList.toggle('hidden', strategy !== 'masaniello');
+                    this.ui.gemhuelGroup.classList.toggle('hidden', strategy !== 'gemhuel');
+                }
+            };
+            
+            App.init();
+        });
     </script>
 </body>
 </html>
-
