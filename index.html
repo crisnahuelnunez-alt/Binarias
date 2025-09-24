@@ -67,19 +67,18 @@
                 
                 <div id="gpa-group">
                     <div class="split-inputs">
-                        <div class="input-group"><label>Meta de Ganancia ($)</label><input type="number" id="gpa-take-profit" value="50"></div>
-                        <div class="input-group"><label>Límite de Pérdida ($)</label><input type="number" id="gpa-stop-loss" value="20"></div>
-                    </div>
-                    <div class="split-inputs">
                         <div class="input-group"><label>Riesgo por Operación (%)</label><input type="number" id="gpa-risk-percent" value="6" min="1" max="100"></div>
+                        <div class="input-group"><label>Límite de Pérdida ($)</label><input type="number" id="gpa-stop-loss" value="20"></div>
                         <div class="input-group"><label>Límite Racha Negativa</label><input type="number" id="gpa-loss-streak" value="4" min="2"></div>
                     </div>
+                     <p class="info-text">La meta de ganancia se calculará automáticamente como un 20% sobre tu capital inicial.</p>
                 </div>
 
                 <div id="masaniello-group" class="hidden">
                     <div class="split-inputs">
                         <div class="input-group"><label>Total Operaciones</label><input type="number" id="total-trades-masa" value="10" min="1"></div>
                         <div class="input-group"><label>Ganadas Esperadas</label><input type="number" id="expected-wins" value="4" min="1"></div>
+                        <div class="input-group"><label>Meta de Ganancia ($)</label><input type="number" id="masa-take-profit" value="50"></div>
                     </div>
                 </div>
 
