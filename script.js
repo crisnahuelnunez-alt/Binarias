@@ -1,15 +1,32 @@
 document.addEventListener('DOMContentLoaded', () => {
     const App = {
-        state: {},
+        state: {
+            currentUser: null,
+            initialBalance: 0,
+            currentBalance: 0,
+            operationNumber: 1,
+            lastInvestment: 0,
+            history: [],
+            strategy: 'gemhuel',
+            payout: 0.87,
+            gemhuel: { phase: 'Acumulación', accumulationGoal: 0, profitForAttack: 0, attackTradesCount: 0, attackInvestment: 0, accumulationInvestment: 0, attackTrades: 3 },
+            masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
+        },
         ui: {
-            welcomeScreen: document.getElementById('welcome-screen'),
+            userScreen: document.getElementById('user-screen'),
+            mainMenuScreen: document.getElementById('main-menu-screen'),
             dashboard: document.getElementById('dashboard'),
             historyScreen: document.getElementById('history-screen'),
+            usernameInput: document.getElementById('username'),
+            loginBtn: document.getElementById('login-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            welcomeMessage: document.getElementById('welcome-message'),
+            goToSessionBtn: document.getElementById('go-to-session-btn'),
+            goToHistoryBtn: document.getElementById('go-to-history-btn'),
             setupCard: document.getElementById('setup-card'),
             liveCard: document.getElementById('live-card'),
             historyCard: document.getElementById('history-card'),
             journalCard: document.getElementById('journal-card'),
-            startSessionBtn: document.getElementById('start-session-btn'),
             startBtn: document.getElementById('startBtn'),
             winBtn: document.getElementById('winBtn'),
             lossBtn: document.getElementById('lossBtn'),
@@ -26,11 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
             allowDecimals: document.getElementById('allowDecimals'),
             payoutRateInput: document.getElementById('payoutRate'),
             phaseDisplay: document.getElementById('phase-display'),
-            backToWelcomeBtn: document.getElementById('backToWelcomeBtn'),
+            backToMenuBtn: document.getElementById('backToMenuBtn'),
             sessionNotes: document.getElementById('session-notes'),
-            viewHistoryBtn: document.getElementById('view-history-btn'),
             savedSessionsList: document.getElementById('saved-sessions-list'),
-            backToWelcomeFromHistoryBtn: document.getElementById('back-to-welcome-from-history-btn'),
+            backToMenuFromHistoryBtn: document.getElementById('back-to-menu-from-history-btn'),
             scoreboard: document.getElementById('scoreboard'),
             sbInitial: document.getElementById('sb-initial'),
             sbCurrent: document.getElementById('sb-current'),
@@ -43,32 +59,71 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         init() {
-            this.resetApp();
             this.bindEvents();
-            this.updateUI();
+            const loggedInUser = sessionStorage.getItem('currentUser');
+            if (loggedInUser) {
+                this.showMainMenu(loggedInUser);
+            } else {
+                this.showScreen('user');
+            }
         },
         
-        resetState() {
-            this.state = {
-                initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
-                strategy: 'gemhuel', payout: 0.87,
-                gemhuel: { phase: 'Acumulación', accumulationGoal: 0, profitForAttack: 0, attackTradesCount: 0, attackInvestment: 0, accumulationInvestment: 0, attackTrades: 3 },
-                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
-            };
-        },
-
         bindEvents() {
-            this.ui.startSessionBtn.addEventListener('click', () => this.initSession());
+            this.ui.loginBtn.addEventListener('click', () => this.login());
+            this.ui.logoutBtn.addEventListener('click', () => this.logout());
+            this.ui.goToSessionBtn.addEventListener('click', () => this.showScreen('dashboard-setup'));
+            this.ui.goToHistoryBtn.addEventListener('click', () => this.showScreen('history'));
             this.ui.startBtn.addEventListener('click', () => this.startTrading());
             this.ui.winBtn.addEventListener('click', () => this.logResult(true));
             this.ui.lossBtn.addEventListener('click', () => this.logResult(false));
             this.ui.strategySelect.addEventListener('change', () => this.updateUI());
-            this.ui.backToWelcomeBtn.addEventListener('click', () => this.resetApp());
+            this.ui.backToMenuBtn.addEventListener('click', () => this.showMainMenu(this.state.currentUser));
             this.ui.saveSessionBtn.addEventListener('click', () => this.saveSession());
-            this.ui.viewHistoryBtn.addEventListener('click', () => this.showHistoryScreen());
-            this.ui.backToWelcomeFromHistoryBtn.addEventListener('click', () => this.resetApp());
+            this.ui.backToMenuFromHistoryBtn.addEventListener('click', () => this.showMainMenu(this.state.currentUser));
+        },
+        
+        login() {
+            const username = this.ui.usernameInput.value.trim();
+            if (!username) { alert('Por favor, ingresa un nombre de usuario.'); return; }
+            sessionStorage.setItem('currentUser', username);
+            this.showMainMenu(username);
         },
 
+        logout() {
+            sessionStorage.removeItem('currentUser');
+            this.state.currentUser = null;
+            this.showScreen('user');
+        },
+
+        showMainMenu(username) {
+            this.state.currentUser = username;
+            this.ui.welcomeMessage.textContent = `¡Hola, ${username}!`;
+            this.showScreen('main-menu');
+        },
+
+        showScreen(screenName) {
+            this.ui.userScreen.classList.add('hidden');
+            this.ui.mainMenuScreen.classList.add('hidden');
+            this.ui.dashboard.classList.add('hidden');
+            this.ui.historyScreen.classList.add('hidden');
+            if (screenName === 'user') this.ui.userScreen.classList.remove('hidden');
+            else if (screenName === 'main-menu') this.ui.mainMenuScreen.classList.remove('hidden');
+            else if (screenName === 'dashboard-setup') {
+                this.resetSessionState();
+                this.ui.dashboard.classList.remove('hidden');
+            } else if (screenName === 'history') this.showHistoryScreen();
+        },
+        
+        loadUserSessions() {
+            if (!this.state.currentUser) return [];
+            return JSON.parse(localStorage.getItem(`tradingSessions_${this.state.currentUser}`)) || [];
+        },
+        
+        saveUserSessions(sessions) {
+            if (!this.state.currentUser) return;
+            localStorage.setItem(`tradingSessions_${this.state.currentUser}`, JSON.stringify(sessions));
+        },
+        
         saveSession() {
             const notes = this.ui.sessionNotes.value;
             const profitLoss = this.state.currentBalance - this.state.initialBalance;
@@ -80,17 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 history: this.state.history,
                 notes: notes
             };
-            let savedSessions = JSON.parse(localStorage.getItem('tradingSessions')) || [];
+            let savedSessions = this.loadUserSessions();
             savedSessions.unshift(sessionData);
-            localStorage.setItem('tradingSessions', JSON.stringify(savedSessions));
+            this.saveUserSessions(savedSessions);
             alert('¡Sesión guardada con éxito!');
-            this.resetApp();
+            this.showMainMenu(this.state.currentUser);
         },
 
         showHistoryScreen() {
-            this.ui.welcomeScreen.classList.add('hidden');
             this.ui.historyScreen.classList.remove('hidden');
-            const sessions = JSON.parse(localStorage.getItem('tradingSessions')) || [];
+            const sessions = this.loadUserSessions();
             const container = this.ui.savedSessionsList;
             if (sessions.length === 0) {
                 container.innerHTML = '<p>No hay sesiones guardadas todavía.</p>';
@@ -123,11 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         },
         
-        resetApp() {
-            this.resetState();
-            this.ui.welcomeScreen.classList.remove('hidden');
-            this.ui.dashboard.classList.add('hidden');
-            this.ui.historyScreen.classList.add('hidden');
+        resetSessionState() {
+            this.state.initialBalance = 0;
+            this.state.currentBalance = 0;
+            this.state.operationNumber = 1;
+            this.state.lastInvestment = 0;
+            this.state.history = [];
             this.ui.scoreboard.classList.add('hidden');
             this.ui.setupCard.classList.remove('hidden');
             this.ui.liveCard.classList.add('hidden');
@@ -138,40 +193,37 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.sessionNotes.value = '';
             this.updateUI();
         },
-
-        initSession() {
-            const balance = parseFloat(this.ui.initialBalanceInput.value);
-            if (balance > 0) {
-                this.resetState();
-                this.state.initialBalance = balance;
-                this.state.currentBalance = balance;
-                this.ui.dashboard.classList.remove('hidden');
-                this.ui.welcomeScreen.classList.add('hidden');
-                this.ui.scoreboard.classList.remove('hidden');
-                this.updateScoreboard();
-            } else { alert("Introduce un capital inicial válido."); }
-        },
-
+        
         startTrading() {
+            const balance = parseFloat(this.ui.initialBalanceInput.value);
+            if (!balance || balance <= 0) {
+                alert("Introduce un capital inicial válido para la sesión.");
+                return;
+            }
+            this.state.initialBalance = balance;
+            this.state.currentBalance = balance;
             this.state.strategy = this.ui.strategySelect.value;
             this.state.payout = parseFloat(this.ui.payoutRateInput.value) / 100;
+
             if (this.state.strategy === 'masaniello') {
-                this.state.masaniello.totalTrades = parseInt(document.getElementById('total-trades-masa').value);
-                this.state.masaniello.expectedWins = parseInt(document.getElementById('expected-wins').value);
-                if (this.state.masaniello.expectedWins >= this.state.masaniello.totalTrades) {
+                const totalTrades = parseInt(this.ui.masanielloGroup.querySelector('#total-trades-masa').value);
+                const expectedWins = parseInt(this.ui.masanielloGroup.querySelector('#expected-wins').value);
+                if (expectedWins >= totalTrades) {
                     alert("El número de ganadas esperadas debe ser menor que el total de operaciones.");
                     return;
                 }
+                this.state.masaniello.totalTrades = totalTrades;
+                this.state.masaniello.expectedWins = expectedWins;
             } else {
-                const accumulationInvestmentPercent = parseFloat(document.getElementById('accumulation-investment-percent').value);
-                const accumulationGoalPercent = parseFloat(document.getElementById('accumulation-goal-percent').value);
-                this.state.gemhuel.accumulationInvestment = this.state.initialBalance * (accumulationInvestmentPercent / 100);
-                this.state.gemhuel.accumulationGoal = this.state.initialBalance * (1 + accumulationGoalPercent / 100);
-                this.state.gemhuel.attackTrades = parseInt(document.getElementById('attack-trades').value);
+                this.state.gemhuel.accumulationInvestment = this.state.initialBalance * (parseFloat(this.ui.gemhuelGroup.querySelector('#accumulation-investment-percent').value) / 100);
+                this.state.gemhuel.accumulationGoal = this.state.initialBalance * (1 + parseFloat(this.ui.gemhuelGroup.querySelector('#accumulation-goal-percent').value) / 100);
+                this.state.gemhuel.attackTrades = parseInt(this.ui.gemhuelGroup.querySelector('#attack-trades').value);
             }
+            this.ui.scoreboard.classList.remove('hidden');
             this.ui.liveCard.classList.remove('hidden');
             this.ui.historyCard.classList.remove('hidden');
             this.ui.setupCard.classList.add('hidden');
+            this.updateScoreboard();
             this.calculateNextInvestment();
         },
 
