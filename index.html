@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app-background"></div> <div class="content-wrapper"> <div id="user-screen" class="card fade-in">
+    <div id="app-background"></div>
+    <div class="content-wrapper">
+        <div id="user-screen" class="card fade-in">
             <h1>Gestión de Riesgo Pro</h1>
             <p>Ingresa tu usuario para cargar tu progreso</p>
             <div class="input-group">
@@ -51,40 +53,43 @@
                     <label for="initial-balance">¿Cuál es tu capital para la sesión?</label>
                     <div class="input-with-symbol">
                         <span>$</span>
-                        <input type="number" id="initial-balance" placeholder="Ej: 100" min="1">
+                        <input type="number" id="initial-balance" placeholder="Ej: 25" min="1">
                     </div>
                 </div>
                 <div class="input-group">
-                    <label for="strategy">Estrategia de Gestión de Riesgo</label>
+                    <label for="strategy">Selecciona tu Estrategia</label>
                     <select id="strategy">
-                        <option value="gemhuel">Estrategia Gemhuel</option>
-                        <option value="masaniello">Progresión de Ciclo (Masaniello)</option>
+                        <option value="gpa">GESTION PRO DE ACUMULACION</option>
+                        <option value="masaniello">Riesgo Calculado (Masaniello)</option>
                     </select>
                 </div>
                 <div id="strategy-info-box"></div>
+                
+                <div id="gpa-group">
+                    <div class="split-inputs">
+                        <div class="input-group"><label>Meta de Ganancia ($)</label><input type="number" id="gpa-take-profit" value="50"></div>
+                        <div class="input-group"><label>Límite de Pérdida ($)</label><input type="number" id="gpa-stop-loss" value="20"></div>
+                        <div class="input-group"><label>Límite Racha Negativa</label><input type="number" id="gpa-loss-streak" value="4"></div>
+                    </div>
+                </div>
+
                 <div id="masaniello-group" class="hidden">
                     <div class="split-inputs">
-                        <div class="input-group"><label for="total-trades-masa">Total Operaciones</label><input type="number" id="total-trades-masa" value="10" min="1"></div>
-                        <div class="input-group"><label for="expected-wins">Ganadas Esperadas</label><input type="number" id="expected-wins" value="4" min="1"></div>
+                        <div class="input-group"><label>Total Operaciones</label><input type="number" id="total-trades-masa" value="10" min="1"></div>
+                        <div class="input-group"><label>Ganadas Esperadas</label><input type="number" id="expected-wins" value="4" min="1"></div>
                     </div>
                 </div>
-                <div id="gemhuel-group">
-                    <div class="split-inputs">
-                        <div class="input-group"><label>Inversión Acumulación (%)</label><input type="number" id="accumulation-investment-percent" value="2" min="0.1"></div>
-                        <div class="input-group"><label>Meta Acumulación (%)</label><input type="number" id="accumulation-goal-percent" value="10" min="0.1"></div>
-                        <div class="input-group"><label>Operaciones de Ataque</label><input type="number" id="attack-trades" value="3" min="1"></div>
-                    </div>
-                </div>
+
                 <div class="split-inputs">
                     <div class="input-group"><label for="payoutRate">Payout del Broker (%)</label><input type="number" id="payoutRate" value="87" min="1" max="100"></div>
                     <div class="input-group checkbox-group">
                         <input type="checkbox" id="allowDecimals" checked><label for="allowDecimals">Permitir decimales</label>
                     </div>
                 </div>
-                <p class="info-text">Activa esta opción si tu bróker permite montos con decimales (ej: $1.50).</p>
-                <div class="warning-text">⚠️ Recuerda: Tu capital está en riesgo. Opera con responsabilidad.</div> <div class="action-buttons">
-                    <button class="btn-secondary" id="backToMenuBtn">⬅️ Volver al Menú</button>
-                    <button class="btn-primary" id="startBtn">▶️ Comenzar Operativa</button>
+                <div class="warning-text">⚠️ Recuerda: Tu capital está en riesgo. Opera con responsabilidad.</div>
+                <div class="action-buttons">
+                     <button class="btn-secondary" id="backToMenuBtn">⬅️ Volver al Menú</button>
+                     <button class="btn-primary" id="startBtn">▶️ Comenzar Operativa</button>
                 </div>
             </div>
             <div id="live-card" class="card hidden">
@@ -103,7 +108,7 @@
             <div id="journal-card" class="card hidden">
                 <h2>Análisis de la Sesión</h2>
                 <div id="journal-summary"></div>
-                <div class="input-group">
+                 <div class="input-group">
                     <label for="session-notes">Notas para Mejorar:</label>
                     <textarea id="session-notes" rows="4" placeholder="¿Qué aprendiste en esta sesión? ¿Qué patrones observaste?"></textarea>
                 </div>
@@ -115,31 +120,7 @@
             <div class="card">
                 <h2><span class="icon">📈</span> Mis Estadísticas</h2>
                 <div id="personal-stats-panel">
-                    <div class="stats-item">
-                        <span class="stats-label">Total Sesiones</span>
-                        <span id="stat-total-sessions" class="stats-value">0</span>
                     </div>
-                    <div class="stats-item">
-                        <span class="stats-label">G/P Neto</span>
-                        <span id="stat-net-profit" class="stats-value positive">$0.00</span>
-                    </div>
-                    <div class="stats-item">
-                        <span class="stats-label">Tasa de Éxito</span>
-                        <span id="stat-win-rate" class="stats-value">0%</span>
-                    </div>
-                    <div class="stats-item">
-                        <span class="stats-label">Total Operaciones</span>
-                        <span id="stat-total-trades" class="stats-value">0</span>
-                    </div>
-                    <div class="stats-item">
-                        <span class="stats-label">Operaciones Ganadas</span>
-                        <span id="stat-total-wins" class="stats-value positive">0</span>
-                    </div>
-                    <div class="stats-item">
-                        <span class="stats-label">Operaciones Perdidas</span>
-                        <span id="stat-total-losses" class="stats-value negative">0</span>
-                    </div>
-                </div>
             </div>
             <div class="card">
                 <h2><span class="icon">📚</span> Historial de Sesiones</h2>
@@ -150,6 +131,7 @@
             </div>
         </div>
 
-    </div> <script src="script.js"></script>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
