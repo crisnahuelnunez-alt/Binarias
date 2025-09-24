@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state: {
             currentUser: null, initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
             strategy: 'gpa', payout: 0.87,
-            gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
+            gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 4, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
             masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
         },
         ui: {
@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gpaGroup: document.getElementById('gpa-group'),
             gpaTakeProfit: document.getElementById('gpa-take-profit'),
             gpaStopLoss: document.getElementById('gpa-stop-loss'),
+            gpaRiskPercent: document.getElementById('gpa-risk-percent'),
             gpaLossStreak: document.getElementById('gpa-loss-streak'),
             masanielloGroup: document.getElementById('masaniello-group'),
             allowDecimals: document.getElementById('allowDecimals'),
@@ -241,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetSessionState() {
             Object.assign(this.state, {
                 initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
-                gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
+                gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 4, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
                 masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
             });
             this.ui.scoreboard.classList.add('hidden');
@@ -266,8 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.state.strategy === 'gpa') {
                 this.state.gpa.takeProfit = parseFloat(this.ui.gpaTakeProfit.value);
                 this.state.gpa.stopLoss = parseFloat(this.ui.gpaStopLoss.value);
+                this.state.gpa.riskPerTrade = parseFloat(this.ui.gpaRiskPercent.value);
                 this.state.gpa.lossStreakLimit = parseInt(this.ui.gpaLossStreak.value);
-                this.state.gpa.takeoffThreshold = this.state.initialBalance * 1.10;
+                this.state.gpa.takeoffThreshold = this.state.initialBalance * 1.10; // Umbral fijo del 10%
 
                 if (this.state.gpa.takeProfit <= this.state.initialBalance || this.state.gpa.stopLoss >= this.state.initialBalance) {
                     alert("Configuración inválida: La meta debe ser mayor y el límite de pérdida menor que tu capital inicial.");
@@ -294,16 +296,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.state.strategy === 'gpa') {
                 const gpa = this.state.gpa;
                 if (gpa.phase === 'DESPEGUE') {
-                    // LÓGICA INTELIGENTE: El riesgo se basa en la racha de pérdida que estás dispuesto a tolerar.
-                    // Una racha más larga significa una inversión más conservadora.
-                    const riskFactor = 10 / gpa.lossStreakLimit; // Ej: 10/4 = 2.5. 10/5 = 2.0.
-                    const riskPercent = riskFactor / 100; // Ej: 2.5% -> 0.025
-                    investment = this.state.currentBalance * riskPercent; // Se basa en el capital ACTUAL
+                    const riskPercent = gpa.riskPerTrade / 100; // Ej: 4% -> 0.04
+                    investment = this.state.currentBalance * riskPercent;
                 } else { // Fase CRUCERO
                     const profit = this.state.currentBalance - this.state.initialBalance;
-                    investment = profit * 0.30; // 30% de la ganancia neta como "acelerador"
+                    const riskPercent = 30 / 100; // Fijo en 30% de la ganancia para la fase de aceleración
+                    investment = profit * riskPercent;
                 }
-            } else { // Masaniello
+            } else {
                  const m = this.state.masaniello;
                 const payoutMasa = 1 + this.state.payout;
                 const remainingTrades = m.totalTrades - m.tradesDone;
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (!this.ui.allowDecimals.checked) investment = Math.round(investment);
-            investment = Math.max(1, investment); // Inversión mínima de $1
+            investment = Math.max(1, investment);
             this.state.lastInvestment = Math.min(investment, this.state.currentBalance);
             this.updateLivePanel();
         },
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.masanielloGroup.classList.toggle('hidden', strategy !== 'masaniello');
             
             const info = {
-                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Estrategia de fases para proteger capital y acelerar ganancias.', warning: 'Define tus metas y límites. El sistema ajusta el riesgo.' },
+                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Estrategia de fases controlada por tu riesgo por operación.', warning: 'Define tu riesgo y el sistema se adapta.' },
                 'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>Riesgo Calculado (Masaniello)</strong>', description: 'Calcula la inversión necesaria para alcanzar un objetivo de aciertos.', warning: 'Requiere disciplina para seguir el plan matemático.' }
             };
             this.ui.strategyInfoBox.style.borderColor = info[strategy].borderColor;
