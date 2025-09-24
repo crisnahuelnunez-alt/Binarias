@@ -50,7 +50,7 @@
             <div id="setup-card" class="card">
                 <h2><span class="icon">⚙️</span> Plan de Sesión</h2>
                 <div class="input-group">
-                    <label for="initial-balance">¿Cuál es tu capital para la sesión?</label>
+                    <label for="initial-balance">Capital para la sesión ($)</label>
                     <div class="input-with-symbol">
                         <span>$</span>
                         <input type="number" id="initial-balance" placeholder="Ej: 25" min="1">
@@ -69,6 +69,9 @@
                     <div class="split-inputs">
                         <div class="input-group"><label>Meta de Ganancia ($)</label><input type="number" id="gpa-take-profit" value="50"></div>
                         <div class="input-group"><label>Límite de Pérdida ($)</label><input type="number" id="gpa-stop-loss" value="20"></div>
+                    </div>
+                    <div class="split-inputs">
+                        <div class="input-group"><label>Riesgo por Operación (%)</label><input type="number" id="gpa-risk-percent" value="4" min="1" max="100"></div>
                         <div class="input-group"><label>Límite Racha Negativa</label><input type="number" id="gpa-loss-streak" value="4" min="2"></div>
                     </div>
                 </div>
@@ -137,3 +140,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
