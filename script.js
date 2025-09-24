@@ -98,13 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         showScreen(screenName) {
-            // Oculta todas las pantallas/contenedores principales primero
+            // Oculta explícitamente todos los contenedores de pantalla principal
             this.ui.userScreen.classList.add('hidden');
             this.ui.mainMenuScreen.classList.add('hidden');
             this.ui.dashboard.classList.add('hidden');
             this.ui.historyScreen.classList.add('hidden');
-
+            
             let elementToShow;
+
             if (screenName === 'user') {
                 elementToShow = this.ui.userScreen;
             } else if (screenName === 'main-menu') {
@@ -113,13 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.resetSessionState();
                 elementToShow = this.ui.dashboard;
             } else if (screenName === 'history') {
-                elementToShow = this.ui.historyScreen;
                 this.renderAllUserSessions();
+                elementToShow = this.ui.historyScreen;
             }
 
-            if(elementToShow){
+            if (elementToShow) {
                 elementToShow.classList.remove('hidden');
-                // Forzar un reflow para reiniciar la animación
+                // Forzar un reflow para que la animación se reinicie
                 void elementToShow.offsetWidth;
                 elementToShow.classList.add('fade-in');
             }
