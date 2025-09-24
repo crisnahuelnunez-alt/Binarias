@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state: {
             currentUser: null, initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
             strategy: 'gpa', payout: 0.87,
-            gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 4, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
+            gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
             masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
         },
         ui: {
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetSessionState() {
             Object.assign(this.state, {
                 initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
-                gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 4, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
+                gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
                 masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
             });
             this.ui.scoreboard.classList.add('hidden');
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.state.gpa.stopLoss = parseFloat(this.ui.gpaStopLoss.value);
                 this.state.gpa.riskPerTrade = parseFloat(this.ui.gpaRiskPercent.value);
                 this.state.gpa.lossStreakLimit = parseInt(this.ui.gpaLossStreak.value);
-                this.state.gpa.takeoffThreshold = this.state.initialBalance * 1.10; // Umbral fijo del 10%
+                this.state.gpa.takeoffThreshold = this.state.initialBalance * 1.10;
 
                 if (this.state.gpa.takeProfit <= this.state.initialBalance || this.state.gpa.stopLoss >= this.state.initialBalance) {
                     alert("Configuración inválida: La meta debe ser mayor y el límite de pérdida menor que tu capital inicial.");
@@ -296,11 +296,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.state.strategy === 'gpa') {
                 const gpa = this.state.gpa;
                 if (gpa.phase === 'DESPEGUE') {
-                    const riskPercent = gpa.riskPerTrade / 100; // Ej: 4% -> 0.04
+                    const riskPercent = gpa.riskPerTrade / 100;
                     investment = this.state.currentBalance * riskPercent;
                 } else { // Fase CRUCERO
                     const profit = this.state.currentBalance - this.state.initialBalance;
-                    const riskPercent = 30 / 100; // Fijo en 30% de la ganancia para la fase de aceleración
+                    const riskPercent = 30 / 100; // Fijo en 30% de la ganancia
                     investment = profit * riskPercent;
                 }
             } else {
