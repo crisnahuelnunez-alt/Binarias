@@ -294,12 +294,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.state.strategy === 'gpa') {
                 const gpa = this.state.gpa;
                 if (gpa.phase === 'DESPEGUE') {
-                    investment = this.state.initialBalance * 0.025;
-                } else {
+                    // LÓGICA INTELIGENTE: El riesgo se basa en la racha de pérdida que estás dispuesto a tolerar.
+                    // Una racha más larga significa una inversión más conservadora.
+                    const riskFactor = 10 / gpa.lossStreakLimit; // Ej: 10/4 = 2.5. 10/5 = 2.0.
+                    const riskPercent = riskFactor / 100; // Ej: 2.5% -> 0.025
+                    investment = this.state.currentBalance * riskPercent; // Se basa en el capital ACTUAL
+                } else { // Fase CRUCERO
                     const profit = this.state.currentBalance - this.state.initialBalance;
-                    investment = profit * 0.30;
+                    investment = profit * 0.30; // 30% de la ganancia neta como "acelerador"
                 }
-            } else {
+            } else { // Masaniello
                  const m = this.state.masaniello;
                 const payoutMasa = 1 + this.state.payout;
                 const remainingTrades = m.totalTrades - m.tradesDone;
@@ -308,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (!this.ui.allowDecimals.checked) investment = Math.round(investment);
-            investment = Math.max(1, investment);
+            investment = Math.max(1, investment); // Inversión mínima de $1
             this.state.lastInvestment = Math.min(investment, this.state.currentBalance);
             this.updateLivePanel();
         },
