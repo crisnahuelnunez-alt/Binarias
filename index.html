@@ -8,119 +8,148 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="user-screen">
-        <h1>Gestión de Riesgo Pro</h1>
-        <p>Ingresa tu usuario para cargar tu progreso</p>
-        <div class="input-group">
-            <label for="username">Nombre de Usuario</label>
-            <input type="text" id="username" placeholder="Ej: TraderPro">
-        </div>
-        <div class="action-buttons">
-            <button class="btn-primary" id="login-btn">Continuar</button>
-        </div>
-    </div>
-
-    <div id="main-menu-screen" class="hidden">
-        <h1 id="welcome-message"></h1>
-        <p>¿Qué te gustaría hacer hoy?</p>
-        <div class="action-buttons vertical">
-            <button class="btn-primary" id="go-to-session-btn">🚀 Iniciar Nueva Sesión</button>
-            <button class="btn-secondary" id="go-to-history-btn">📚 Ver Historial de Sesiones</button>
-        </div>
-        <button class="btn-logout" id="logout-btn">Cerrar Sesión</button>
-    </div>
-
-    <div id="dashboard" class="container hidden">
-        <div id="scoreboard" class="card">
-             <div class="scoreboard-item">
-                <span class="label">Capital Inicial</span>
-                <span id="sb-initial" class="value">$0.00</span>
-            </div>
-            <div class="scoreboard-item">
-                <span class="label">Capital Actual</span>
-                <span id="sb-current" class="value">$0.00</span>
-            </div>
-            <div class="scoreboard-item">
-                <span class="label">G/P Actual</span>
-                <span id="sb-profit" class="value">$0.00</span>
-            </div>
-        </div>
-        <div id="setup-card" class="card">
-            <h2><span class="icon">⚙️</span> Plan de Sesión</h2>
+    <div id="app-background"></div> <div class="content-wrapper"> <div id="user-screen" class="card fade-in">
+            <h1>Gestión de Riesgo Pro</h1>
+            <p>Ingresa tu usuario para cargar tu progreso</p>
             <div class="input-group">
-                <label for="initial-balance">¿Cuál es tu capital para la sesión?</label>
-                <div class="input-with-symbol">
-                    <span>$</span>
-                    <input type="number" id="initial-balance" placeholder="Ej: 100" min="1">
-                </div>
+                <label for="username">Nombre de Usuario</label>
+                <input type="text" id="username" placeholder="Ej: TraderPro">
             </div>
-            <div class="input-group">
-                <label for="strategy">Estrategia de Gestión de Riesgo</label>
-                <select id="strategy">
-                    <option value="gemhuel">Estrategia Gemhuel</option>
-                    <option value="masaniello">Progresión de Ciclo (Masaniello)</option>
-                </select>
-            </div>
-            <div id="strategy-info-box"></div>
-            <div id="masaniello-group" class="hidden">
-                <div class="split-inputs">
-                    <div class="input-group"><label for="total-trades-masa">Total Operaciones</label><input type="number" id="total-trades-masa" value="10" min="1"></div>
-                    <div class="input-group"><label for="expected-wins">Ganadas Esperadas</label><input type="number" id="expected-wins" value="4" min="1"></div>
-                </div>
-            </div>
-            <div id="gemhuel-group">
-                <div class="split-inputs">
-                    <div class="input-group"><label>Inversión Acumulación (%)</label><input type="number" id="accumulation-investment-percent" value="2" min="0.1"></div>
-                    <div class="input-group"><label>Meta Acumulación (%)</label><input type="number" id="accumulation-goal-percent" value="10" min="0.1"></div>
-                    <div class="input-group"><label>Operaciones de Ataque</label><input type="number" id="attack-trades" value="3" min="1"></div>
-                </div>
-            </div>
-            <div class="split-inputs">
-                <div class="input-group"><label for="payoutRate">Payout del Broker (%)</label><input type="number" id="payoutRate" value="87" min="1" max="100"></div>
-                <div class="input-group checkbox-group">
-                    <input type="checkbox" id="allowDecimals" checked><label for="allowDecimals">Permitir decimales</label>
-                </div>
-            </div>
-            <p class="info-text">Activa esta opción si tu bróker permite montos con decimales (ej: $1.50).</p>
             <div class="action-buttons">
-                 <button class="btn-secondary" id="backToMenuBtn">⬅️ Volver al Menú</button>
-                 <button class="btn-primary" id="startBtn">▶️ Comenzar Operativa</button>
+                <button class="btn-primary" id="login-btn">Continuar</button>
             </div>
         </div>
-        <div id="live-card" class="card hidden">
-            <h2>Panel de Operación</h2>
-            <div style="text-align: center;">
-                <div id="phase-display"></div>
-                <h3 id="operation-label"></h3>
-                <div id="investment-amount" class="investment-amount"></div>
-                <div class="action-buttons"><button class="btn btn-win" id="winBtn">Gané ✅</button><button class="btn btn-loss" id="lossBtn">Perdí ❌</button></div>
-            </div>
-        </div>
-        <div id="history-card" class="card hidden">
-            <h2>Historial de la Sesión</h2>
-            <div id="tableContent"></div>
-        </div>
-        <div id="journal-card" class="card hidden">
-            <h2>Análisis de la Sesión</h2>
-            <div id="journal-summary"></div>
-             <div class="input-group">
-                <label for="session-notes">Notas para Mejorar:</label>
-                <textarea id="session-notes" rows="4" placeholder="¿Qué aprendiste en esta sesión? ¿Qué patrones observaste?"></textarea>
-            </div>
-            <button class="btn-primary" id="save-session-btn">Guardar y Volver al Menú</button>
-        </div>
-    </div>
-    
-    <div id="history-screen" class="container hidden">
-        <div class="card">
-             <h2><span class="icon">📚</span> Historial de Sesiones</h2>
-             <div id="saved-sessions-list"></div>
-             <div class="action-buttons">
-                 <button class="btn-secondary" id="back-to-menu-from-history-btn">⬅️ Volver al Menú</button>
-             </div>
-        </div>
-    </div>
 
-    <script src="script.js"></script>
+        <div id="main-menu-screen" class="hidden card fade-in">
+            <h1 id="welcome-message"></h1>
+            <p>¿Qué te gustaría hacer hoy?</p>
+            <div class="action-buttons vertical">
+                <button class="btn-primary" id="go-to-session-btn">🚀 Iniciar Nueva Sesión</button>
+                <button class="btn-secondary" id="go-to-history-btn">📚 Ver Historial de Sesiones</button>
+            </div>
+            <button class="btn-logout" id="logout-btn">Cerrar Sesión</button>
+        </div>
+
+        <div id="dashboard" class="container hidden fade-in">
+            <div id="scoreboard" class="card">
+                <div class="scoreboard-item">
+                    <span class="label">Capital Inicial</span>
+                    <span id="sb-initial" class="value">$0.00</span>
+                </div>
+                <div class="scoreboard-item">
+                    <span class="label">Capital Actual</span>
+                    <span id="sb-current" class="value">$0.00</span>
+                </div>
+                <div class="scoreboard-item">
+                    <span class="label">G/P Actual</span>
+                    <span id="sb-profit" class="value">$0.00</span>
+                </div>
+            </div>
+            <div id="setup-card" class="card">
+                <h2><span class="icon">⚙️</span> Plan de Sesión</h2>
+                <div class="input-group">
+                    <label for="initial-balance">¿Cuál es tu capital para la sesión?</label>
+                    <div class="input-with-symbol">
+                        <span>$</span>
+                        <input type="number" id="initial-balance" placeholder="Ej: 100" min="1">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="strategy">Estrategia de Gestión de Riesgo</label>
+                    <select id="strategy">
+                        <option value="gemhuel">Estrategia Gemhuel</option>
+                        <option value="masaniello">Progresión de Ciclo (Masaniello)</option>
+                    </select>
+                </div>
+                <div id="strategy-info-box"></div>
+                <div id="masaniello-group" class="hidden">
+                    <div class="split-inputs">
+                        <div class="input-group"><label for="total-trades-masa">Total Operaciones</label><input type="number" id="total-trades-masa" value="10" min="1"></div>
+                        <div class="input-group"><label for="expected-wins">Ganadas Esperadas</label><input type="number" id="expected-wins" value="4" min="1"></div>
+                    </div>
+                </div>
+                <div id="gemhuel-group">
+                    <div class="split-inputs">
+                        <div class="input-group"><label>Inversión Acumulación (%)</label><input type="number" id="accumulation-investment-percent" value="2" min="0.1"></div>
+                        <div class="input-group"><label>Meta Acumulación (%)</label><input type="number" id="accumulation-goal-percent" value="10" min="0.1"></div>
+                        <div class="input-group"><label>Operaciones de Ataque</label><input type="number" id="attack-trades" value="3" min="1"></div>
+                    </div>
+                </div>
+                <div class="split-inputs">
+                    <div class="input-group"><label for="payoutRate">Payout del Broker (%)</label><input type="number" id="payoutRate" value="87" min="1" max="100"></div>
+                    <div class="input-group checkbox-group">
+                        <input type="checkbox" id="allowDecimals" checked><label for="allowDecimals">Permitir decimales</label>
+                    </div>
+                </div>
+                <p class="info-text">Activa esta opción si tu bróker permite montos con decimales (ej: $1.50).</p>
+                <div class="warning-text">⚠️ Recuerda: Tu capital está en riesgo. Opera con responsabilidad.</div> <div class="action-buttons">
+                    <button class="btn-secondary" id="backToMenuBtn">⬅️ Volver al Menú</button>
+                    <button class="btn-primary" id="startBtn">▶️ Comenzar Operativa</button>
+                </div>
+            </div>
+            <div id="live-card" class="card hidden">
+                <h2>Panel de Operación</h2>
+                <div style="text-align: center;">
+                    <div id="phase-display"></div>
+                    <h3 id="operation-label"></h3>
+                    <div id="investment-amount" class="investment-amount"></div>
+                    <div class="action-buttons"><button class="btn btn-win" id="winBtn">Gané ✅</button><button class="btn btn-loss" id="lossBtn">Perdí ❌</button></div>
+                </div>
+            </div>
+            <div id="history-card" class="card hidden">
+                <h2>Historial de la Sesión Actual</h2>
+                <div id="tableContent"></div>
+            </div>
+            <div id="journal-card" class="card hidden">
+                <h2>Análisis de la Sesión</h2>
+                <div id="journal-summary"></div>
+                <div class="input-group">
+                    <label for="session-notes">Notas para Mejorar:</label>
+                    <textarea id="session-notes" rows="4" placeholder="¿Qué aprendiste en esta sesión? ¿Qué patrones observaste?"></textarea>
+                </div>
+                <button class="btn-primary" id="save-session-btn">Guardar y Volver al Menú</button>
+            </div>
+        </div>
+        
+        <div id="history-screen" class="container hidden fade-in">
+            <div class="card">
+                <h2><span class="icon">📈</span> Mis Estadísticas</h2>
+                <div id="personal-stats-panel">
+                    <div class="stats-item">
+                        <span class="stats-label">Total Sesiones</span>
+                        <span id="stat-total-sessions" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">G/P Neto</span>
+                        <span id="stat-net-profit" class="stats-value positive">$0.00</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Tasa de Éxito</span>
+                        <span id="stat-win-rate" class="stats-value">0%</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Total Operaciones</span>
+                        <span id="stat-total-trades" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Operaciones Ganadas</span>
+                        <span id="stat-total-wins" class="stats-value positive">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Operaciones Perdidas</span>
+                        <span id="stat-total-losses" class="stats-value negative">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h2><span class="icon">📚</span> Historial de Sesiones</h2>
+                <div id="saved-sessions-list"></div>
+                <div class="action-buttons">
+                    <button class="btn-secondary" id="back-to-menu-from-history-btn">⬅️ Volver al Menú</button>
+                </div>
+            </div>
+        </div>
+
+    </div> <script src="script.js"></script>
 </body>
 </html>
