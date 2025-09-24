@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUser: null, initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
             strategy: 'gpa', payout: 0.87,
             gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0, lastLossAmount: 0 },
-            masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
+            masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50 }
         },
         ui: {
             userScreen: document.getElementById('user-screen'),
@@ -33,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
             strategySelect: document.getElementById('strategy'),
             strategyInfoBox: document.getElementById('strategy-info-box'),
             gpaGroup: document.getElementById('gpa-group'),
-            gpaTakeProfit: document.getElementById('gpa-take-profit'),
             gpaStopLoss: document.getElementById('gpa-stop-loss'),
             gpaRiskPercent: document.getElementById('gpa-risk-percent'),
             gpaLossStreak: document.getElementById('gpa-loss-streak'),
             masanielloGroup: document.getElementById('masaniello-group'),
+            masaTakeProfit: document.getElementById('masa-take-profit'),
             allowDecimals: document.getElementById('allowDecimals'),
             payoutRateInput: document.getElementById('payoutRate'),
             phaseDisplay: document.getElementById('phase-display'),
@@ -90,15 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             window.addEventListener('popstate', (event) => {
                 const loggedInUser = sessionStorage.getItem('currentUser');
-                if (!loggedInUser) {
-                    this._displayScreen('user');
-                    return;
-                }
-                if (event.state && event.state.screen) {
-                    this._displayScreen(event.state.screen);
-                } else {
-                    this._displayScreen('main-menu');
-                }
+                if (!loggedInUser) { this._displayScreen('user'); return; }
+                if (event.state && event.state.screen) { this._displayScreen(event.state.screen); } 
+                else { this._displayScreen('main-menu'); }
             });
         },
         
@@ -144,6 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 elementToShow = this.ui.mainMenuScreen;
             } else if (screenName === 'dashboard-setup') {
                 this.resetSessionState();
+                const lastBalance = this.getLastBalance();
+                this.ui.initialBalanceInput.value = lastBalance ? lastBalance.toFixed(2) : '';
+                this.ui.gpaStopLoss.value = lastBalance ? (lastBalance * 0.8).toFixed(0) : '20';
                 elementToShow = this.ui.dashboard;
             } else if (screenName === 'history') {
                 this.renderAllUserSessions();
@@ -155,6 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 void elementToShow.offsetWidth;
                 elementToShow.classList.add('fade-in');
             }
+        },
+
+        getLastBalance() {
+            const sessions = this.loadUserSessions();
+            if (sessions.length > 0) {
+                return sessions[0].finalBalance;
+            }
+            return null;
         },
         
         loadUserSessions() {
@@ -243,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Object.assign(this.state, {
                 initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
                 gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0, lastLossAmount: 0 },
-                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
+                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50 }
             });
             this.ui.scoreboard.classList.add('hidden');
             this.ui.setupCard.classList.remove('hidden');
@@ -265,17 +270,18 @@ document.addEventListener('DOMContentLoaded', () => {
             this.state.payout = parseFloat(this.ui.payoutRateInput.value) / 100;
 
             if (this.state.strategy === 'gpa') {
-                this.state.gpa.takeProfit = parseFloat(this.ui.gpaTakeProfit.value);
+                this.state.gpa.takeProfit = this.state.initialBalance * 1.20;
                 this.state.gpa.stopLoss = parseFloat(this.ui.gpaStopLoss.value);
                 this.state.gpa.riskPerTrade = parseFloat(this.ui.gpaRiskPercent.value);
                 this.state.gpa.lossStreakLimit = parseInt(this.ui.gpaLossStreak.value);
                 this.state.gpa.takeoffThreshold = this.state.initialBalance * 1.10;
 
-                if (this.state.gpa.takeProfit <= this.state.initialBalance || this.state.gpa.stopLoss >= this.state.initialBalance) {
-                    alert("Configuración inválida: La meta debe ser mayor y el límite de pérdida menor que tu capital inicial.");
+                if (this.state.gpa.stopLoss >= this.state.initialBalance) {
+                    alert("El límite de pérdida debe ser menor que tu capital inicial.");
                     return;
                 }
             } else {
+                this.state.masaniello.takeProfit = parseFloat(this.ui.masaTakeProfit.value);
                 const totalTrades = parseInt(this.ui.masanielloGroup.querySelector('#total-trades-masa').value);
                 const expectedWins = parseInt(this.ui.masanielloGroup.querySelector('#expected-wins').value);
                 if (expectedWins >= totalTrades) { alert("Las ganadas esperadas deben ser menores que el total de operaciones."); return; }
@@ -301,11 +307,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (gpa.phase === 'RECUPERACION') {
                     const baseRiskPercent = gpa.riskPerTrade / 100;
                     const baseInvestment = this.state.currentBalance * baseRiskPercent;
-                    const recoveryAddon = gpa.lastLossAmount * 0.33; // Intenta recuperar 1/3 de la última pérdida
+                    const recoveryAddon = gpa.lastLossAmount * 0.33;
                     investment = baseInvestment + recoveryAddon;
                 } else { // Fase CRUCERO
                     const profit = this.state.currentBalance - this.state.initialBalance;
-                    const riskPercent = 30 / 100; // Fijo en 30% de la ganancia
+                    const riskPercent = 30 / 100;
                     investment = profit * riskPercent;
                 }
             } else {
@@ -330,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.state.currentBalance += netResult;
             
             if (!isWin) {
-                this.state.gpa.lastLossAmount = investment; // Guarda el monto de la pérdida
+                this.state.gpa.lastLossAmount = investment;
             }
 
             const newHistoryEntry = { 
@@ -364,12 +370,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (gpa.phase === 'RECUPERACION') {
                         gpa.phase = 'CRUCERO';
                     }
-                } else { // Si se pierde
+                } else {
                     gpa.consecutiveLosses++;
                     if (gpa.phase === 'CRUCERO') {
-                        gpa.phase = 'RECUPERACION'; // Entra en recuperación
+                        gpa.phase = 'RECUPERACION';
                     } else {
-                        gpa.phase = 'DESPEGUE'; // Si pierde en Despegue o Recuperación, vuelve a la base
+                        gpa.phase = 'DESPEGUE';
                     }
                 }
             } else {
@@ -386,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (gpa.consecutiveLosses >= gpa.lossStreakLimit) return true;
             } else {
                 const m = this.state.masaniello;
+                if(this.state.currentBalance >= m.takeProfit) return true;
                 const remTrades = m.totalTrades - m.tradesDone;
                 const remWins = m.expectedWins - m.winsSoFar;
                 if (remWins <= 0 || remWins > remTrades || remTrades <= 0) return true;
@@ -470,12 +477,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.masanielloGroup.classList.toggle('hidden', strategy !== 'masaniello');
             
             const info = {
-                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Estrategia de fases con recuperación activa.', warning: 'Define tu riesgo y el sistema se adapta.' },
-                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>Riesgo Calculado (Masaniello)</strong>', description: 'Calcula la inversión necesaria para alcanzar un objetivo de aciertos.', warning: 'Requiere disciplina para seguir el plan matemático.' }
+                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Plan de progreso con meta diaria automática del 20%.', warning: 'Tu capital se guarda y progresa entre sesiones.' },
+                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>Riesgo Calculado (Masaniello)</strong>', description: 'Calcula la inversión para un objetivo de aciertos.', warning: 'Requiere disciplina para seguir el plan matemático.' }
             };
             this.ui.strategyInfoBox.style.borderColor = info[strategy].borderColor;
             this.ui.strategyInfoBox.innerHTML = `<p>${info[strategy].title}</p><p>${info[strategy].description}</p><p style="opacity: 0.8;">${info[strategy].warning}</p>`;
         }
     };
+    
     App.init();
 });
