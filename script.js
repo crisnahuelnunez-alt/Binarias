@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state: {
             currentUser: null, initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
             strategy: 'gpa', payout: 0.87,
-            gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
+            gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0, lastLossAmount: 0 },
             masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
         },
         ui: {
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetSessionState() {
             Object.assign(this.state, {
                 initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
-                gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0 },
+                gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0, lastLossAmount: 0 },
                 masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 }
             });
             this.ui.scoreboard.classList.add('hidden');
@@ -298,6 +298,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (gpa.phase === 'DESPEGUE') {
                     const riskPercent = gpa.riskPerTrade / 100;
                     investment = this.state.currentBalance * riskPercent;
+                } else if (gpa.phase === 'RECUPERACION') {
+                    const baseRiskPercent = gpa.riskPerTrade / 100;
+                    const baseInvestment = this.state.currentBalance * baseRiskPercent;
+                    const recoveryAddon = gpa.lastLossAmount * 0.33; // Intenta recuperar 1/3 de la última pérdida
+                    investment = baseInvestment + recoveryAddon;
                 } else { // Fase CRUCERO
                     const profit = this.state.currentBalance - this.state.initialBalance;
                     const riskPercent = 30 / 100; // Fijo en 30% de la ganancia
@@ -323,6 +328,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const netResult = isWin ? investment * this.state.payout : -investment;
             
             this.state.currentBalance += netResult;
+            
+            if (!isWin) {
+                this.state.gpa.lastLossAmount = investment; // Guarda el monto de la pérdida
+            }
+
             const newHistoryEntry = { 
                 op: this.state.operationNumber, 
                 investment, 
@@ -351,11 +361,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     gpa.consecutiveLosses = 0;
                     if (gpa.phase === 'DESPEGUE' && this.state.currentBalance >= gpa.takeoffThreshold) {
                         gpa.phase = 'CRUCERO';
+                    } else if (gpa.phase === 'RECUPERACION') {
+                        gpa.phase = 'CRUCERO';
                     }
-                } else {
+                } else { // Si se pierde
                     gpa.consecutiveLosses++;
                     if (gpa.phase === 'CRUCERO') {
-                        gpa.phase = 'DESPEGUE';
+                        gpa.phase = 'RECUPERACION'; // Entra en recuperación
+                    } else {
+                        gpa.phase = 'DESPEGUE'; // Si pierde en Despegue o Recuperación, vuelve a la base
                     }
                 }
             } else {
@@ -418,7 +432,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.state.strategy === 'gpa') {
                 const gpa = this.state.gpa;
                 this.ui.phaseDisplay.innerText = `FASE: ${gpa.phase}`;
-                this.ui.phaseDisplay.style.color = gpa.phase === 'CRUCERO' ? 'var(--color-secondary)' : 'var(--color-warning)';
+                if (gpa.phase === 'CRUCERO') this.ui.phaseDisplay.style.color = 'var(--color-secondary)';
+                else if (gpa.phase === 'RECUPERACION') this.ui.phaseDisplay.style.color = 'var(--color-loss)';
+                else this.ui.phaseDisplay.style.color = 'var(--color-warning)';
             } else {
                 const m = this.state.masaniello;
                 this.ui.phaseDisplay.innerText = `GANADAS: ${m.winsSoFar} de ${m.expectedWins}`;
@@ -454,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.masanielloGroup.classList.toggle('hidden', strategy !== 'masaniello');
             
             const info = {
-                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Estrategia de fases controlada por tu riesgo por operación.', warning: 'Define tu riesgo y el sistema se adapta.' },
+                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Estrategia de fases con recuperación activa.', warning: 'Define tu riesgo y el sistema se adapta.' },
                 'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>Riesgo Calculado (Masaniello)</strong>', description: 'Calcula la inversión necesaria para alcanzar un objetivo de aciertos.', warning: 'Requiere disciplina para seguir el plan matemático.' }
             };
             this.ui.strategyInfoBox.style.borderColor = info[strategy].borderColor;
