@@ -58,9 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         init() {
             this.bindEvents();
+            const hash = window.location.hash.substring(1);
             const loggedInUser = sessionStorage.getItem('currentUser');
-            if (loggedInUser) this.showMainMenu(loggedInUser);
-            else this.showScreen('user');
+
+            if (loggedInUser) {
+                this.state.currentUser = loggedInUser;
+                if (hash && hash !== 'user') {
+                    this._displayScreen(hash);
+                } else {
+                    this.showScreen('main-menu');
+                }
+            } else {
+                this._displayScreen('user');
+            }
         },
         
         bindEvents() {
@@ -72,9 +82,22 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.winBtn.addEventListener('click', () => this.logResult(true));
             this.ui.lossBtn.addEventListener('click', () => this.logResult(false));
             this.ui.strategySelect.addEventListener('change', () => this.updateUI());
-            this.ui.backToMenuBtn.addEventListener('click', () => this.showMainMenu(this.state.currentUser));
+            this.ui.backToMenuBtn.addEventListener('click', () => this.showScreen('main-menu'));
             this.ui.saveSessionBtn.addEventListener('click', () => this.saveSession());
-            this.ui.backToMenuFromHistoryBtn.addEventListener('click', () => this.showMainMenu(this.state.currentUser));
+            this.ui.backToMenuFromHistoryBtn.addEventListener('click', () => this.showScreen('main-menu'));
+            
+            window.addEventListener('popstate', (event) => {
+                const loggedInUser = sessionStorage.getItem('currentUser');
+                if (!loggedInUser) {
+                    this._displayScreen('user');
+                    return;
+                }
+                if (event.state && event.state.screen) {
+                    this._displayScreen(event.state.screen);
+                } else {
+                    this._displayScreen('main-menu');
+                }
+            });
         },
         
         login() {
@@ -98,14 +121,20 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         showScreen(screenName) {
-            // Oculta explícitamente todos los contenedores de pantalla principal
+            const currentHash = window.location.hash.substring(1);
+            if (screenName !== currentHash) {
+                history.pushState({ screen: screenName }, '', `#${screenName}`);
+            }
+            this._displayScreen(screenName);
+        },
+
+        _displayScreen(screenName) {
             this.ui.userScreen.classList.add('hidden');
             this.ui.mainMenuScreen.classList.add('hidden');
             this.ui.dashboard.classList.add('hidden');
             this.ui.historyScreen.classList.add('hidden');
             
             let elementToShow;
-
             if (screenName === 'user') {
                 elementToShow = this.ui.userScreen;
             } else if (screenName === 'main-menu') {
@@ -120,7 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (elementToShow) {
                 elementToShow.classList.remove('hidden');
-                // Forzar un reflow para que la animación se reinicie
                 void elementToShow.offsetWidth;
                 elementToShow.classList.add('fade-in');
             }
@@ -347,6 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         endSession() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             const profitLoss = this.state.currentBalance - this.state.initialBalance;
             const profitLossPercent = (this.state.initialBalance > 0) ? (profitLoss / this.state.initialBalance) * 100 : 0;
             let resultText = this.state.currentBalance > this.state.initialBalance ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
