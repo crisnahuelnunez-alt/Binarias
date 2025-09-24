@@ -16,35 +16,30 @@ body {
     align-items: center;
     font-size: 16px;
     line-height: 1.6;
-    overflow-y: auto; /* Permite scroll si el contenido es largo */
+    overflow-y: auto;
 }
-
-/* Estilos para el fondo futurista */
 #app-background {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background-image: url('assets/Gemini_Generated_Image_iogzlriogzlriogz.png');
     background-size: cover;
     background-position: center;
-    filter: brightness(0.6) contrast(1.2); /* Ajusta para un look más oscuro y contrastado */
-    z-index: -1; /* Envía al fondo */
+    filter: brightness(0.6) contrast(1.2);
+    z-index: -1;
     animation: fadeInBackground 2s ease-out;
 }
-
 .content-wrapper {
-    position: relative; /* Para que esté por encima del fondo fijo */
+    position: relative;
     width: 100%;
-    max-width: 1000px; /* Ancho máximo para el contenido */
+    max-width: 1000px;
     padding: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh; /* Asegura que el wrapper ocupe toda la altura */
+    min-height: 100vh;
 }
-
 .hidden { display: none !important; }
 .fade-in { animation: fadeIn 0.5s ease-out; }
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -53,12 +48,12 @@ body {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-
 .container { width: 100%; margin: 0 auto; }
 .card {
     background: var(--color-card-background); backdrop-filter: blur(15px);
     border: 1px solid var(--color-card-border); border-radius: var(--border-radius-main);
     padding: 35px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4); margin-bottom: 30px;
+    width: 100%;
 }
 .card h2 {
     margin-bottom: 30px; color: var(--color-primary); font-size: 1.8em; font-weight: 700;
@@ -66,8 +61,7 @@ body {
     display: flex; align-items: center;
 }
 .card h2 .icon { margin-right: 10px; font-size: 1.2em; }
-
-#user-screen, #main-menu-screen { text-align: center; max-width: 600px; width: 100%; }
+#user-screen, #main-menu-screen { text-align: center; max-width: 600px; }
 #user-screen h1, #main-menu-screen h1 {
     font-size: 3.5em; font-weight: 800; background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -135,8 +129,6 @@ th { color: var(--color-primary); }
 .session-details summary:hover { background: rgba(255,255,255,0.05); }
 .session-details-content { padding: 0 20px 20px; }
 .session-notes { white-space: pre-wrap; background: rgba(0,0,0,0.2); padding: 15px; border-radius: var(--border-radius-sm); margin-top: 20px; text-align: left; }
-
-/* Estilos para el Panel de Estadísticas Personales */
 #personal-stats-panel {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -163,79 +155,25 @@ th { color: var(--color-primary); }
     font-size: 1.8em;
     font-weight: 700;
     line-height: 1.2;
-    color: var(--color-primary); /* Color por defecto */
+    color: var(--color-primary);
 }
 .stats-value.positive { color: var(--color-secondary); }
 .stats-value.negative { color: var(--color-loss); }
-
-/* Media Queries para responsividad */
 @media (max-width: 768px) {
     body { padding: 15px; }
+    .content-wrapper { padding: 15px; }
     .card { padding: 25px; }
     #user-screen h1, #main-menu-screen h1 { font-size: 2.5em; }
     #main-menu-screen h1 { font-size: 2em; }
     #user-screen p, #main-menu-screen p { font-size: 1.2em; margin-bottom: 25px; }
     .action-buttons { flex-direction: column; gap: 15px; }
+    .action-buttons:not(.vertical) { flex-direction: row; }
     .btn, .btn-primary, .btn-secondary { padding: 15px 25px; font-size: 1em; }
     .split-inputs { flex-direction: column; gap: 15px; }
     .input-group label { margin-bottom: 5px; }
     .input-group input, .input-group select, .input-group textarea { padding: 12px; font-size: 1em; }
     .investment-amount { font-size: 3em; }
     .scoreboard-item .value { font-size: 1.8em; }
-    #personal-stats-panel { grid-template-columns: 1fr; }
+    #personal-stats-panel { grid-template-columns: 1fr 1fr; }
     .stats-item .stats-value { font-size: 1.5em; }
-}
-
-/* Estilos para el Modal de Error */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    animation: fadeIn 0.3s forwards;
-}
-
-.modal-content {
-    background: var(--color-card-background);
-    border: 1px solid var(--color-loss);
-    border-radius: var(--border-radius-main);
-    padding: 35px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    transform: scale(0.95);
-    animation: fadeInScale 0.3s forwards;
-}
-
-.modal-content h2 {
-    color: var(--color-loss);
-    margin-bottom: 15px;
-    font-size: 1.5em;
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.modal-content p {
-    color: var(--color-tertiary);
-    margin-bottom: 25px;
-}
-
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }
