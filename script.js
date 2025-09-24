@@ -51,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
             sbInitial: document.getElementById('sb-initial'),
             sbCurrent: document.getElementById('sb-current'),
             sbProfit: document.getElementById('sb-profit'),
+            // Nuevos elementos para estadísticas
+            statTotalSessions: document.getElementById('stat-total-sessions'),
+            statNetProfit: document.getElementById('stat-net-profit'),
+            statWinRate: document.getElementById('stat-win-rate'),
+            statTotalTrades: document.getElementById('stat-total-trades'),
+            statTotalWins: document.getElementById('stat-total-wins'),
+            statTotalLosses: document.getElementById('stat-total-losses'),
         },
 
         math: {
@@ -102,16 +109,34 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         showScreen(screenName) {
+            // Oculta todas las pantallas principales
             this.ui.userScreen.classList.add('hidden');
             this.ui.mainMenuScreen.classList.add('hidden');
             this.ui.dashboard.classList.add('hidden');
             this.ui.historyScreen.classList.add('hidden');
-            if (screenName === 'user') this.ui.userScreen.classList.remove('hidden');
-            else if (screenName === 'main-menu') this.ui.mainMenuScreen.classList.remove('hidden');
-            else if (screenName === 'dashboard-setup') {
+
+            // Limpia las clases de animación
+            this.ui.userScreen.classList.remove('fade-in');
+            this.ui.mainMenuScreen.classList.remove('fade-in');
+            this.ui.dashboard.classList.remove('fade-in');
+            this.ui.historyScreen.classList.remove('fade-in');
+
+            // Muestra la pantalla correcta y añade la animación
+            if (screenName === 'user') {
+                this.ui.userScreen.classList.remove('hidden');
+                this.ui.userScreen.classList.add('fade-in');
+            } else if (screenName === 'main-menu') {
+                this.ui.mainMenuScreen.classList.remove('hidden');
+                this.ui.mainMenuScreen.classList.add('fade-in');
+            } else if (screenName === 'dashboard-setup') {
                 this.resetSessionState();
                 this.ui.dashboard.classList.remove('hidden');
-            } else if (screenName === 'history') this.showHistoryScreen();
+                this.ui.dashboard.classList.add('fade-in');
+            } else if (screenName === 'history') {
+                this.ui.historyScreen.classList.remove('hidden');
+                this.ui.historyScreen.classList.add('fade-in');
+                this.renderAllUserSessions(); // Carga las sesiones y estadísticas
+            }
         },
         
         loadUserSessions() {
@@ -142,12 +167,14 @@ document.addEventListener('DOMContentLoaded', () => {
             this.showMainMenu(this.state.currentUser);
         },
 
-        showHistoryScreen() {
-            this.ui.historyScreen.classList.remove('hidden');
+        renderAllUserSessions() {
             const sessions = this.loadUserSessions();
             const container = this.ui.savedSessionsList;
+            
+            this.calculateAndDisplayPersonalStats(sessions); // NUEVO: Calcular y mostrar estadísticas
+
             if (sessions.length === 0) {
-                container.innerHTML = '<p>No hay sesiones guardadas todavía.</p>';
+                container.innerHTML = '<p>No hay sesiones guardadas todavía para este usuario.</p>';
                 return;
             }
             container.innerHTML = '';
@@ -177,12 +204,54 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         },
         
+        // NUEVA FUNCIÓN: Calcular y mostrar estadísticas personales
+        calculateAndDisplayPersonalStats(sessions) {
+            let totalSessions = sessions.length;
+            let totalProfitLoss = 0;
+            let totalTrades = 0;
+            let totalWins = 0;
+            let totalLosses = 0;
+
+            sessions.forEach(session => {
+                totalProfitLoss += session.profitLoss;
+                session.history.forEach(op => {
+                    totalTrades++;
+                    if (op.result === 'WIN') {
+                        totalWins++;
+                    } else {
+                        totalLosses++;
+                    }
+                });
+            });
+
+            const winRate = totalTrades > 0 ? (totalWins / totalTrades * 100).toFixed(2) : 0;
+
+            this.ui.statTotalSessions.textContent = totalSessions;
+            this.ui.statNetProfit.textContent = `$${totalProfitLoss.toFixed(2)}`;
+            this.ui.statNetProfit.classList.remove('positive', 'negative');
+            if (totalProfitLoss >= 0) this.ui.statNetProfit.classList.add('positive');
+            else this.ui.statNetProfit.classList.add('negative');
+
+            this.ui.statWinRate.textContent = `${winRate}%`;
+            this.ui.statWinRate.classList.remove('positive', 'negative');
+            if (winRate >= 50) this.ui.statWinRate.classList.add('positive'); // Considerar win rate > 50% como positivo
+            else if (winRate < 50 && totalTrades > 0) this.ui.statWinRate.classList.add('negative');
+
+
+            this.ui.statTotalTrades.textContent = totalTrades;
+            this.ui.statTotalWins.textContent = totalWins;
+            this.ui.statTotalLosses.textContent = totalLosses;
+        },
+
         resetSessionState() {
             this.state.initialBalance = 0;
             this.state.currentBalance = 0;
             this.state.operationNumber = 1;
             this.state.lastInvestment = 0;
             this.state.history = [];
+            this.state.gemhuel = { phase: 'Acumulación', accumulationGoal: 0, profitForAttack: 0, attackTradesCount: 0, attackInvestment: 0, accumulationInvestment: 0, attackTrades: 3 };
+            this.state.masaniello = { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0 };
+
             this.ui.scoreboard.classList.add('hidden');
             this.ui.setupCard.classList.remove('hidden');
             this.ui.liveCard.classList.add('hidden');
@@ -214,10 +283,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 this.state.masaniello.totalTrades = totalTrades;
                 this.state.masaniello.expectedWins = expectedWins;
+                this.state.masaniello.winsSoFar = 0;
+                this.state.masaniello.tradesDone = 0;
             } else {
                 this.state.gemhuel.accumulationInvestment = this.state.initialBalance * (parseFloat(this.ui.gemhuelGroup.querySelector('#accumulation-investment-percent').value) / 100);
                 this.state.gemhuel.accumulationGoal = this.state.initialBalance * (1 + parseFloat(this.ui.gemhuelGroup.querySelector('#accumulation-goal-percent').value) / 100);
                 this.state.gemhuel.attackTrades = parseInt(this.ui.gemhuelGroup.querySelector('#attack-trades').value);
+                this.state.gemhuel.phase = 'Acumulación';
+                this.state.gemhuel.profitForAttack = 0;
+                this.state.gemhuel.attackTradesCount = 0;
+                this.state.gemhuel.attackInvestment = 0;
             }
             this.ui.scoreboard.classList.remove('hidden');
             this.ui.liveCard.classList.remove('hidden');
@@ -237,11 +312,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const payoutMasa = 1 + this.state.payout;
                 const remainingTrades = m.totalTrades - m.tradesDone;
                 const remainingWins = m.expectedWins - m.winsSoFar;
-                investment = this.math.calculateMasanielloInvestment(this.state.currentBalance, remainingTrades, remainingWins, payoutMasa);
+                
+                // Asegurar que no se pidan más victorias de las posibles en los trades restantes
+                const actualExpectedWins = Math.min(remainingWins, remainingTrades);
+
+                investment = this.math.calculateMasanielloInvestment(
+                    this.state.currentBalance, 
+                    remainingTrades, 
+                    actualExpectedWins, // Usar las victorias ajustadas
+                    payoutMasa
+                );
             }
-            if (!this.ui.allowDecimals.checked) investment = Math.round(investment);
-            this.state.lastInvestment = (investment > this.state.currentBalance || investment <= 0) ? this.state.currentBalance : investment;
-            if(this.state.lastInvestment < 1 && this.state.currentBalance > 1) this.state.lastInvestment = 1;
+            if (!this.ui.allowDecimals.checked) investment = Math.round(investment * 100) / 100; // Redondear a 2 decimales si se permiten decimales
+            else investment = Math.round(investment); // Redondear al entero más cercano si no se permiten decimales
+
+            // Asegurar que la inversión no exceda el balance actual y no sea negativa. Mínimo 1 si hay balance.
+            this.state.lastInvestment = Math.max(0, Math.min(investment, this.state.currentBalance));
+            if (this.state.lastInvestment < 1 && this.state.currentBalance >= 1) {
+                this.state.lastInvestment = 1;
+            }
+            
             this.updateLivePanel();
         },
         
@@ -273,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     g.attackTradesCount = 0;
                 } else if (g.phase === 'Ataque') {
                     g.attackTradesCount++;
+                    // Si se perdió en fase de ataque o se completaron los trades de ataque
                     if (!isWin || g.attackTradesCount >= g.attackTrades) g.phase = 'Acumulación';
                 }
             } else {
@@ -282,14 +373,27 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         checkSessionEnd() {
+            // Fin si el balance llega a 0 o menos
             if (this.state.currentBalance <= 0) return true;
+
+            // Fin para Masaniello
             if (this.state.strategy === 'masaniello') {
                 const m = this.state.masaniello;
                 const remTrades = m.totalTrades - m.tradesDone;
                 const remWins = m.expectedWins - m.winsSoFar;
-                if (remWins <= 0 || remWins > remTrades || m.tradesDone >= m.totalTrades) return true;
+                
+                // Si ya no quedan trades para hacer
+                if (remTrades <= 0) return true;
+                // Si ya no es posible alcanzar las victorias esperadas
+                if (remWins > remTrades) return true;
+                // Si ya se alcanzaron las victorias esperadas
+                if (remWins <= 0) return true;
             }
+            
+            // Si la inversión calculada es 0 o menos (y no es la primera operación)
+            // Esto puede pasar si el capital es muy bajo para la estrategia o si Masaniello da 0.
             if (this.state.lastInvestment <= 0 && this.state.operationNumber > 1) return true;
+
             return false;
         },
 
@@ -335,6 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.ui.phaseDisplay.innerText = `GANADAS: ${m.winsSoFar} de ${m.expectedWins}`;
                 this.ui.phaseDisplay.style.color = 'var(--color-primary)';
             }
+            this.toggleActionButtons(true); // Siempre habilitar los botones al actualizar el panel
         },
 
         updateScoreboard() {
