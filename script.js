@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sbCurrent: document.getElementById('sb-current'),
             sbProfit: document.getElementById('sb-profit'),
             personalStatsPanel: document.getElementById('personal-stats-panel'),
+            sessionEndModal: document.getElementById('session-end-modal'),
         },
 
         math: {
@@ -133,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.mainMenuScreen.classList.add('hidden');
             this.ui.dashboard.classList.add('hidden');
             this.ui.historyScreen.classList.add('hidden');
+            this.ui.sessionEndModal.classList.add('hidden');
             
             let elementToShow;
             if (screenName === 'user') {
@@ -178,7 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let savedSessions = this.loadUserSessions();
             savedSessions.unshift(sessionData);
             this.saveUserSessions(savedSessions);
-            alert('¡Sesión guardada con éxito!');
+            
+            this.ui.sessionEndModal.classList.add('hidden');
             this.showMainMenu(this.state.currentUser);
         },
 
@@ -245,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.setupCard.classList.remove('hidden');
             this.ui.liveCard.classList.add('hidden');
             this.ui.historyCard.classList.add('hidden');
-            this.ui.journalCard.classList.add('hidden');
             this.ui.initialBalanceInput.value = '';
             this.ui.tableContent.innerHTML = '';
             this.ui.sessionNotes.value = '';
@@ -392,9 +394,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>Balance Final: $${this.state.currentBalance.toFixed(2)}</p>
                 <p>Ganancia/Pérdida: $${profitLoss.toFixed(2)} (${profitLossPercent.toFixed(2)}%)</p>
                 <p><strong>Operaciones Totales:</strong> ${this.state.history.length}</p>`;
-            this.ui.liveCard.classList.add('hidden');
-            this.ui.historyCard.classList.remove('hidden'); 
-            this.ui.journalCard.classList.remove('hidden');
+            
+            this.ui.dashboard.classList.add('hidden');
+            this.ui.sessionEndModal.classList.remove('hidden');
         },
 
         renderHistory() {
