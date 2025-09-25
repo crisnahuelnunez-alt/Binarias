@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUser: null, initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
             strategy: 'gpa', payout: 0.87,
             gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0, lastLossAmount: 0 },
-            masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50 }
+            masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true }
         },
         ui: {
             userScreen: document.getElementById('user-screen'),
@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gpaLossStreak: document.getElementById('gpa-loss-streak'),
             masanielloGroup: document.getElementById('masaniello-group'),
             masaTakeProfit: document.getElementById('masa-take-profit'),
+            masaEarlyExit: document.getElementById('masa-early-exit'),
             allowDecimals: document.getElementById('allowDecimals'),
             payoutRateInput: document.getElementById('payoutRate'),
             phaseDisplay: document.getElementById('phase-display'),
@@ -248,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Object.assign(this.state, {
                 initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
                 gpa: { phase: 'DESPEGUE', takeProfit: 0, stopLoss: 0, riskPerTrade: 6, lossStreakLimit: 4, consecutiveLosses: 0, takeoffThreshold: 0, lastLossAmount: 0 },
-                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50 }
+                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true }
             });
             this.ui.scoreboard.classList.add('hidden');
             this.ui.setupCard.classList.remove('hidden');
@@ -282,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 this.state.masaniello.takeProfit = parseFloat(this.ui.masaTakeProfit.value);
+                this.state.masaniello.earlyExitEnabled = this.ui.masaEarlyExit.checked;
                 const totalTrades = parseInt(this.ui.masanielloGroup.querySelector('#total-trades-masa').value);
                 const expectedWins = parseInt(this.ui.masanielloGroup.querySelector('#expected-wins').value);
                 if (expectedWins >= totalTrades) { alert("Las ganadas esperadas deben ser menores que el total de operaciones."); return; }
@@ -392,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (gpa.consecutiveLosses >= gpa.lossStreakLimit) return true;
             } else {
                 const m = this.state.masaniello;
-                if(this.state.currentBalance >= m.takeProfit) return true;
+                if (m.earlyExitEnabled && this.state.currentBalance >= m.takeProfit) return true;
                 const remTrades = m.totalTrades - m.tradesDone;
                 const remWins = m.expectedWins - m.winsSoFar;
                 if (remWins <= 0 || remWins > remTrades || remTrades <= 0) return true;
@@ -407,12 +409,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const profitLossPercent = (this.state.initialBalance > 0) ? (profitLoss / this.state.initialBalance) * 100 : 0;
             let resultText = this.state.currentBalance > this.state.initialBalance ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
             if (this.state.strategy === 'gpa') {
-                if (this.state.currentBalance >= this.state.gpa.takeProfit) resultText = '✅ ¡Meta de Ganancia Alcanzada!';
+                if (this.state.currentBalance >= this.state.gpa.takeProfit) resultText = '✅ ¡Meta Automática Alcanzada!';
                 else if (this.state.currentBalance <= this.state.gpa.stopLoss) resultText = '❌ Límite de Pérdida Alcanzado';
                 else if (this.state.gpa.consecutiveLosses >= this.state.gpa.lossStreakLimit) resultText = '❌ Límite de Racha Negativa';
             }
             else if (this.state.strategy === 'masaniello') {
-                resultText = this.state.masaniello.winsSoFar >= this.state.masaniello.expectedWins ? '✅ ¡Ciclo Masaniello Exitoso!' : '❌ Ciclo Masaniello Fallido';
+                const m = this.state.masaniello;
+                if (m.earlyExitEnabled && this.state.currentBalance >= m.takeProfit) resultText = '✅ ¡Salida Anticipada Exitosa!';
+                else if (m.winsSoFar >= m.expectedWins) resultText = '✅ ¡Ciclo Masaniello Exitoso!';
+                else resultText = '❌ Ciclo Masaniello Fallido';
             }
             const resultColor = (this.state.currentBalance > this.state.initialBalance) ? 'var(--color-win)' : 'var(--color-loss)';
             this.ui.journalSummary.innerHTML = `<p style="font-size: 1.4em;"><strong>Resultado:</strong> <span style="color: ${resultColor};">${resultText}</span></p>
@@ -477,8 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.masanielloGroup.classList.toggle('hidden', strategy !== 'masaniello');
             
             const info = {
-                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Plan de progreso con meta diaria automática del 20%.', warning: 'Tu capital se guarda y progresa entre sesiones.' },
-                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>Riesgo Calculado (Masaniello)</strong>', description: 'Calcula la inversión para un objetivo de aciertos.', warning: 'Requiere disciplina para seguir el plan matemático.' }
+                'gpa': { borderColor: 'var(--color-secondary)', title: '<strong>GESTION PRO DE ACUMULACION</strong>', description: 'Plan de progreso con meta diaria automática y recuperación activa.', warning: 'Define tu riesgo y el sistema se adapta.' },
+                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>Riesgo Calculado (Masaniello)</strong>', description: 'Calcula la inversión para un objetivo de aciertos fijos.', warning: 'Activa la Salida Anticipada para mayor seguridad.' }
             };
             this.ui.strategyInfoBox.style.borderColor = info[strategy].borderColor;
             this.ui.strategyInfoBox.innerHTML = `<p>${info[strategy].title}</p><p>${info[strategy].description}</p><p style="opacity: 0.8;">${info[strategy].warning}</p>`;
