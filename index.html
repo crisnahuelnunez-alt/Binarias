@@ -122,14 +122,38 @@
         </div>
         
         <div id="history-screen" class="container hidden fade-in">
+            <div class="card">
+                <h2><span class="icon">📈</span> Mis Estadísticas</h2>
+                <div id="personal-stats-panel"></div>
             </div>
+            <div class="card">
+                <h2><span class="icon">📚</span> Historial de Sesiones</h2>
+                <div id="saved-sessions-list"></div>
+                <div class="action-buttons">
+                    <button class="btn-secondary" id="back-to-menu-from-history-btn">⬅️ Volver al Menú</button>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <div class="social-links">
+                <a href="https://wa.me/5491122514829" target="_blank" title="WhatsApp">💬</a>
+                <a href="https://www.instagram.com/nahu.nz_/" target="_blank" title="Instagram">📷</a>
+            </div>
+            <p class="footer-email">crisnahuelnunez@gmail.com</p>
+        </footer>
     </div>
 
     <div id="session-end-modal" class="modal-overlay hidden">
+        <div id="journal-card" class="card fade-in">
+            <h2>Análisis de la Sesión</h2>
+            <div id="journal-summary"></div>
+            <div class="input-group">
+                <label for="session-notes">Notas para Mejorar:</label>
+                <textarea id="session-notes" rows="4" placeholder="¿Qué aprendiste en esta sesión? ¿Qué patrones observaste?"></textarea>
+            </div>
+            <button class="btn-primary" id="save-session-btn">Guardar y Volver al Menú</button>
         </div>
-
-    <footer>
-        </footer>
+    </div>
 
     <script src="script.js"></script>
 </body>
