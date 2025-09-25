@@ -327,7 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const expected = strategy === 'masaniello_pro' ? m.winsPerCycle : m.expectedWins;
                 const total = strategy === 'masaniello_pro' ? m.tradesPerCycle : m.totalTrades;
                 
-                investment = this.math.calculateMasanielloInvestment(this.state.currentBalance, total - trades, expected - wins, 1 + this.state.payout);
+                // CORRECCIÓN: El capital para el cálculo debe ser el del inicio del ciclo en PRO
+                const calculationCapital = strategy === 'masaniello_pro' ? m.cycleStartCapital : this.state.currentBalance;
+                investment = this.math.calculateMasanielloInvestment(calculationCapital, total - trades, expected - wins, 1 + this.state.payout);
             }
 
             if (!this.ui.allowDecimals.checked) investment = Math.round(investment);
@@ -418,7 +420,10 @@ document.addEventListener('DOMContentLoaded', () => {
             m.cycleStartCapital = this.state.currentBalance;
             m.cycleTrades = 0;
             m.cycleWins = 0;
-            setTimeout(() => this.updateLivePanel(), 2000);
+            setTimeout(() => {
+                this.updateLivePanel();
+                this.calculateNextInvestment();
+            }, 2000);
         },
 
         endSession() {
