@@ -178,6 +178,33 @@ th { color: var(--color-primary); }
     max-width: 600px;
     margin-bottom: 0;
 }
+footer {
+    width: 100%;
+    max-width: 1000px;
+    text-align: center;
+    padding: 30px 0;
+    margin-top: auto;
+    color: var(--color-tertiary);
+    border-top: 1px solid var(--color-card-border);
+}
+.social-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-top: 10px;
+}
+.social-links a {
+    color: var(--color-tertiary);
+    text-decoration: none;
+    font-size: 1em;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+.social-links a:hover {
+    color: var(--color-primary);
+    transform: translateY(-2px);
+}
 @media (max-width: 768px) {
     body { padding: 15px; }
     .content-wrapper { padding: 15px; }
