@@ -60,10 +60,12 @@
                     <label for="strategy">Selecciona tu Estrategia</label>
                     <select id="strategy">
                         <option value="gpa">GESTION PRO DE ACUMULACION</option>
-                        <option value="masaniello">Riesgo Calculado (Masaniello)</option>
+                        <option value="masaniello_pro">MASANIELLO PRO (Etapas)</option>
+                        <option value="masaniello">Riesgo Calculado (Clásico)</option>
                     </select>
                 </div>
                 <div id="strategy-info-box"></div>
+                
                 <div id="gpa-group">
                     <div class="split-inputs">
                         <div class="input-group"><label>Límite de Pérdida ($)</label><input type="number" id="gpa-stop-loss" value="20"></div>
@@ -72,6 +74,15 @@
                     </div>
                      <p class="info-text">La meta de ganancia se calculará automáticamente como un 20% sobre tu capital inicial.</p>
                 </div>
+
+                <div id="masaniello-pro-group" class="hidden">
+                    <div class="split-inputs">
+                        <div class="input-group"><label>Ciclos a Completar</label><input type="number" id="masa-pro-cycles" value="3" min="1"></div>
+                        <div class="input-group"><label>Ganadas por Ciclo</label><input type="number" id="masa-pro-wins" value="4" min="1"></div>
+                        <div class="input-group"><label>Operaciones por Ciclo</label><input type="number" id="masa-pro-trades" value="10" min="2"></div>
+                    </div>
+                </div>
+
                 <div id="masaniello-group" class="hidden">
                     <div class="split-inputs">
                         <div class="input-group"><label>Total Operaciones</label><input type="number" id="total-trades-masa" value="10" min="1"></div>
@@ -82,6 +93,7 @@
                         <input type="checkbox" id="masa-early-exit" checked><label for="masa-early-exit">Habilitar Salida Anticipada al alcanzar la Meta</label>
                    </div>
                 </div>
+
                 <div class="split-inputs">
                     <div class="input-group"><label for="payoutRate">Payout del Broker (%)</label><input type="number" id="payoutRate" value="87" min="1" max="100"></div>
                     <div class="input-group checkbox-group">
@@ -110,39 +122,14 @@
         </div>
         
         <div id="history-screen" class="container hidden fade-in">
-            <div class="card">
-                <h2><span class="icon">📈</span> Mis Estadísticas</h2>
-                <div id="personal-stats-panel"></div>
             </div>
-            <div class="card">
-                <h2><span class="icon">📚</span> Historial de Sesiones</h2>
-                <div id="saved-sessions-list"></div>
-                <div class="action-buttons">
-                    <button class="btn-secondary" id="back-to-menu-from-history-btn">⬅️ Volver al Menú</button>
-                </div>
-            </div>
-        </div>
-
-        <footer>
-            <div class="social-links">
-                <a href="https://wa.me/5491122514829" target="_blank" title="WhatsApp">💬</a>
-                <a href="https://www.instagram.com/nahu.nz_/" target="_blank" title="Instagram">📷</a>
-            </div>
-            <p class="footer-email">crisnahuelnunez@gmail.com</p>
-        </footer>
     </div>
 
     <div id="session-end-modal" class="modal-overlay hidden">
-        <div id="journal-card" class="card fade-in">
-            <h2>Análisis de la Sesión</h2>
-            <div id="journal-summary"></div>
-            <div class="input-group">
-                <label for="session-notes">Notas para Mejorar:</label>
-                <textarea id="session-notes" rows="4" placeholder="¿Qué aprendiste en esta sesión? ¿Qué patrones observaste?"></textarea>
-            </div>
-            <button class="btn-primary" id="save-session-btn">Guardar y Volver al Menú</button>
         </div>
-    </div>
+
+    <footer>
+        </footer>
 
     <script src="script.js"></script>
 </body>
