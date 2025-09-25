@@ -192,18 +192,21 @@ footer {
     justify-content: center;
     align-items: center;
     gap: 30px;
-    margin-top: 10px;
 }
 .social-links a {
     color: var(--color-tertiary);
     text-decoration: none;
-    font-size: 1em;
-    font-weight: 500;
+    font-size: 1.8em; /* Íconos más grandes */
     transition: color 0.3s ease, transform 0.3s ease;
 }
 .social-links a:hover {
     color: var(--color-primary);
     transform: translateY(-2px);
+}
+.footer-email {
+    margin-top: 15px;
+    font-size: 0.9em;
+    opacity: 0.8;
 }
 @media (max-width: 768px) {
     body { padding: 15px; }
