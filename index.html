@@ -6,37 +6,79 @@
     <title>Gestión de Riesgo Pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lexend:wght@700;800&family=Orbitron:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lexend:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div id="notification-container"></div>
     <div id="app-background"></div>
     <div class="content-wrapper">
-        <div id="user-screen" class="card fade-in">
-            <h1>Gestión de Riesgo Pro</h1>
-            <p>Ingresa tu usuario para cargar tu progreso</p>
-            <div class="input-group">
-                <label for="username">Nombre de Usuario</label>
-                <input type="text" id="username" placeholder="Ej: TraderPro">
-            </div>
-            <div class="action-buttons">
-                <button class="btn-primary" id="login-btn">Continuar</button>
+        
+        <svg class="svg-filter-hidden">
+            <defs>
+                <filter id="turbulent-displace" colorInterpolationFilters="sRGB" x="-20%" y="-20%" width="140%" height="140%">
+                    <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="1" />
+                    <feOffset in="noise1" dx="0" dy="0" result="offsetNoise1">
+                        <animate attributeName="dy" values="700; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                    </feOffset>
+                    <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="1" />
+                    <feOffset in="noise2" dx="0" dy="0" result="offsetNoise2">
+                        <animate attributeName="dy" values="0; -700" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                    </feOffset>
+                    <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise1" seed="2" />
+                    <feOffset in="noise1" dx="0" dy="0" result="offsetNoise3">
+                        <animate attributeName="dx" values="490; 0" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                    </feOffset>
+                    <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="10" result="noise2" seed="2" />
+                    <feOffset in="noise2" dx="0" dy="0" result="offsetNoise4">
+                        <animate attributeName="dx" values="0; -490" dur="6s" repeatCount="indefinite" calcMode="linear" />
+                    </feOffset>
+                    <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
+                    <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2" />
+                    <feBlend in="part1" in2="part2" mode="color-dodge" result="combinedNoise" />
+                    <feDisplacementMap in="SourceGraphic" in2="combinedNoise" scale="30" xChannelSelector="R" yChannelSelector="B" />
+                </filter>
+            </defs>
+        </svg>
+        <div id="user-screen" class="hidden login-menu-card-container">
+            <div class="inner-container-bg">
+                <div class="border-outer-bg">
+                    <div class="main-card-bg card fade-in">
+                        <h1>Gestión de Riesgo Pro</h1>
+                        <p>Ingresa tu usuario para cargar tu progreso</p>
+                        <div class="input-group">
+                            <label for="username">Nombre de Usuario</label>
+                            <input type="text" id="username" placeholder="Ej: TraderPro">
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn-primary" id="login-btn">Continuar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glow-layer-1-bg"></div>
+                <div class="glow-layer-2-bg"></div>
             </div>
         </div>
 
-        <div id="main-menu-screen" class="hidden card fade-in">
-            <h1 id="welcome-message"></h1>
-            <p>¿Qué te gustaría hacer hoy?</p>
-            <div class="action-buttons vertical">
-                <button class="btn-primary" id="go-to-session-btn">Iniciar Nueva Sesión</button>
-                <button class="btn-primary" id="go-to-stats-btn" style="background: linear-gradient(45deg, var(--color-secondary), var(--color-primary));">Ver Estadísticas</button>
-                <button class="btn-secondary" id="go-to-history-btn">Gestiona Tus Secciones</button>
+        <div id="main-menu-screen" class="hidden login-menu-card-container">
+            <div class="inner-container-bg">
+                <div class="border-outer-bg">
+                    <div class="main-card-bg card fade-in">
+                        <h1 id="welcome-message"></h1>
+                        <p>¿Qué te gustaría hacer hoy?</p>
+                        <div class="action-buttons vertical">
+                            <button class="btn-primary" id="go-to-session-btn">Iniciar Nueva Sesión</button>
+                            <button class="btn-primary" id="go-to-stats-btn" style="background: linear-gradient(45deg, var(--color-secondary), var(--color-primary));">Ver Estadísticas</button>
+                            <button class="btn-secondary" id="go-to-history-btn">Ver Historial de Sesiones</button>
+                        </div>
+                        <button class="btn-logout" id="logout-btn">Cerrar Sesión</button>
+                    </div>
+                </div>
+                <div class="glow-layer-1-bg"></div>
+                <div class="glow-layer-2-bg"></div>
             </div>
-            <button class="btn-logout" id="logout-btn">Cerrar Sesión</button>
         </div>
 
         <div id="stats-screen" class="container hidden fade-in">
@@ -44,39 +86,19 @@
                 <h2>Panel de Estadísticas</h2>
                 <div class="stats-highlight-grid">
                     <div class="stats-highlight-card">
-                        <span class="label">Win Rate General</span>
-                        <span class="value" id="overall-winrate-value">0%</span>
-                        <span class="date">Ratio de Aciertos</span>
-                    </div>
-                    <div class="stats-highlight-card">
-                        <span class="label">Racha Victorias</span>
-                        <span class="value positive" id="longest-streak-value">0</span>
-                        <span class="date">Operaciones</span>
-                    </div>
-                    <div class="stats-highlight-card">
-                        <span class="label">Racha Pérdidas</span>
-                        <span class="value negative" id="longest-loss-streak-value">0</span>
-                        <span class="date">Operaciones</span>
-                    </div>
-                    <div class="stats-highlight-card">
                         <span class="label">Mejor Sesión (G/P)</span>
                         <span class="value positive" id="best-session-value">$0.00</span>
                         <span class="date" id="best-session-date">--/--/----</span>
                     </div>
-                </div>
-            </div>
-            <div class="card">
-                <h2>Salón de la Fama (Récords Semanales)</h2>
-                <div class="stats-highlight-grid">
                     <div class="stats-highlight-card">
-                        <span class="label">Mejor Semana (Ganancia)</span>
-                        <span class="value positive" id="best-week-profit-value">$0.00</span>
-                        <span class="date" id="best-week-profit-date">Semana --</span>
+                        <span class="label">Mayor Racha de Victorias</span>
+                        <span class="value" id="longest-streak-value">0</span>
+                        <span class="date">Operaciones</span>
                     </div>
-                     <div class="stats-highlight-card">
-                        <span class="label">Mejor Semana (Win Rate)</span>
-                        <span class="value" id="best-week-winrate-value">0%</span>
-                        <span class="date" id="best-week-winrate-date">Semana --</span>
+                    <div class="stats-highlight-card">
+                        <span class="label">Sesión más Efectiva</span>
+                        <span class="value" id="best-winrate-value">0%</span>
+                        <span class="date" id="best-winrate-date">--/--/----</span>
                     </div>
                 </div>
             </div>
@@ -95,66 +117,125 @@
 
         <div id="dashboard" class="container hidden fade-in">
             <div id="scoreboard" class="card">
-                <div class="scoreboard-item"><span class="label">Capital Inicial</span><span id="sb-initial" class="value">$0.00</span></div>
-                <div class="scoreboard-item"><span class="label">Capital Actual</span><span id="sb-current" class="value">$0.00</span></div>
-                <div class="scoreboard-item"><span class="label">G/P Actual</span><span id="sb-profit" class="value">$0.00</span></div>
+                <div class="scoreboard-item">
+                    <span class="label">Capital Inicial</span>
+                    <span id="sb-initial" class="value">$0.00</span>
+                </div>
+                <div class="scoreboard-item">
+                    <span class="label">Capital Actual</span>
+                    <span id="sb-current" class="value">$0.00</span>
+                </div>
+                <div class="scoreboard-item">
+                    <span class="label">G/P Actual</span>
+                    <span id="sb-profit" class="value">$0.00</span>
+                </div>
             </div>
             <div id="setup-card" class="card">
                 <h2>Plan de Sesión</h2>
                 <div class="input-group">
                     <div class="label-group">
                         <label for="initial-balance">Capital para la sesión ($)</label>
-                        <span class="tooltip-icon">?<span class="tooltip-text">Monto con el que iniciarás tu operativa. El sistema basará sus cálculos en esta cifra.</span></span>
+                        <span class="tooltip-icon">?
+                            <span class="tooltip-text">Monto con el que iniciarás tu operativa. El sistema basará sus cálculos en esta cifra.</span>
+                        </span>
                     </div>
-                    <div class="input-with-symbol"><span>$</span><input type="number" id="initial-balance" placeholder="Ej: 25" min="1"></div>
+                    <div class="input-with-symbol">
+                        <span>$</span>
+                        <input type="number" id="initial-balance" placeholder="Ej: 25" min="1">
+                    </div>
                 </div>
                 <div class="input-group">
                     <label for="strategy">Selecciona tu Estrategia</label>
                     <select id="strategy">
-                        <option value="uas">ESTRATEGIA UNIVERSAL DE ACUMULACIÓN (UAS)</option>
-                        <option value="masaniello_pro">MASANIELLO PRO (Etapas)</option>
-                        <option value="masaniello">MASANIELLO CLÁSICO</option>
+                        <option value="uas">ESTRATEGIA 1: RIESGO INTELIGENTE</option>
+                        <option value="masaniello_pro">ESTRATEGIA 2: MASANIELLO SECCIONES</option>
+                        <option value="masaniello">ESTRATEGIA 3: MASANIELLO BÁSICO</option>
                     </select>
                 </div>
                 <div id="strategy-info-box"></div>
+                
                 <div id="uas-group">
                     <div class="split-inputs">
                         <div class="input-group">
-                            <div class="label-group"><label>Límite de Pérdida ($)</label><span class="tooltip-icon">?<span class="tooltip-text">Monto exacto de capital en el que la sesión se detendrá automáticamente si es alcanzado.</span></span></div>
+                            <div class="label-group">
+                                <label>Tasa de Acierto Esperada (%)</label>
+                                <span class="tooltip-icon">?
+                                    <span class="tooltip-text">Tu Win Rate proyectado. El sistema calculará el 'Límite de Racha Negativa' (ALTO) automáticamente basado en este valor (Umbral del 3%).</span>
+                                </span>
+                            </div>
+                            <input type="number" id="uas-win-rate-setup" value="55" min="1" max="100">
+                        </div>
+                        
+                        <div class="input-group">
+                            <div class="label-group">
+                                <label>Límite de Pérdida ($)</label>
+                                <span class="tooltip-icon">?
+                                    <span class="tooltip-text">Monto exacto de capital en el que la sesión se detendrá automáticamente si es alcanzado.</span>
+                                </span>
+                            </div>
                             <input type="number" id="uas-stop-loss" value="20">
                         </div>
+                        
                         <div class="input-group">
-                            <div class="label-group"><label>Riesgo por Operación (%)</label><span class="tooltip-icon">?<span class="tooltip-text">Porcentaje de tu capital actual que el sistema arriesgará en la siguiente operación durante la fase de ACUMULACIÓN.</span></span></div>
+                            <div class="label-group">
+                                <label>Riesgo por Operación (%)</label>
+                                <span class="tooltip-icon">?
+                                    <span class="tooltip-text">Porcentaje de tu capital actual que el sistema arriesgará en la siguiente operación durante la fase de ACUMULACIÓN.</span>
+                                </span>
+                            </div>
                             <input type="number" id="uas-risk-percent" value="5" min="1" max="100">
                         </div>
-                        <div class="input-group">
-                            <div class="label-group"><label>Límite Racha Negativa</label><span class="tooltip-icon">?<span class="tooltip-text">Número máximo de pérdidas consecutivas permitidas antes de que la sesión se detenga para proteger tu capital.</span></span></div>
+                        
+                        <div class="input-group hidden">
+                            <label>Límite Racha Negativa</label>
                             <input type="number" id="uas-loss-streak" value="4" min="2">
                         </div>
                     </div>
-                    <p class="info-text">La meta de ganancia se calculará automáticamente como un 20% sobre tu capital inicial.</p>
+                     <p class="info-text">La meta de ganancia se calculará automáticamente como un 20% sobre tu capital inicial. El Límite de Racha Negativa se calcula con la regla universal del 3%.</p>
                 </div>
+                
                 <div id="masaniello-pro-group" class="hidden">
                     <div class="split-inputs">
                         <div class="input-group"><label>Ciclos a Completar</label><input type="number" id="masa-pro-cycles" value="3" min="1"></div>
                         <div class="input-group"><label>Ganadas por Ciclo</label><input type="number" id="masa-pro-wins" value="4" min="1"></div>
                         <div class="input-group"><label>Operaciones por Ciclo</label><input type="number" id="masa-pro-trades" value="10" min="2"></div>
+                        
+                        <div class="input-group">
+                             <div class="label-group">
+                                <label>Capital de Riesgo Fijo ($)</label>
+                                <span class="tooltip-icon">?
+                                    <span class="tooltip-text">Monto base que se usará para calcular las inversiones de Masaniello. Esto evita arriesgar todo el balance. Ej: 100.</span>
+                                </span>
+                            </div>
+                            <input type="number" id="masa-pro-fixed-risk" value="100" min="10">
+                        </div>
                     </div>
                 </div>
+                
                 <div id="masaniello-group" class="hidden">
                     <div class="split-inputs">
                         <div class="input-group"><label>Total Operaciones</label><input type="number" id="total-trades-masa" value="10" min="1"></div>
                         <div class="input-group"><label>Ganadas Esperadas</label><input type="number" id="expected-wins" value="4" min="1"></div>
                         <div class="input-group"><label>Meta de Ganancia ($)</label><input type="number" id="masa-take-profit" value="50"></div>
                     </div>
-                    <div class="input-group checkbox-group" style="padding-top: 0;"><input type="checkbox" id="masa-early-exit" checked><label for="masa-early-exit">Habilitar Salida Anticipada al alcanzar la Meta</label></div>
+                    <div class="input-group checkbox-group" style="padding-top: 0;">
+                        <input type="checkbox" id="masa-early-exit" checked><label for="masa-early-exit">Habilitar Salida Anticipada al alcanzar la Meta</label>
+                   </div>
                 </div>
+                
                 <div class="split-inputs">
                     <div class="input-group">
-                        <div class="label-group"><label for="payoutRate">Payout del Broker (%)</label><span class="tooltip-icon">?<span class="tooltip-text">El porcentaje de retorno que te ofrece tu broker por cada operación ganada. Ejemplo: 87.</span></span></div>
+                        <div class="label-group">
+                            <label for="payoutRate">Payout del Broker (%)</label>
+                             <span class="tooltip-icon">?
+                                <span class="tooltip-text">El porcentaje de retorno que te ofrece tu broker por cada operación ganada. Ejemplo: 87.</span>
+                            </span>
+                        </div>
                         <input type="number" id="payoutRate" value="87" min="1" max="100">
                     </div>
-                    <div class="input-group checkbox-group"><input type="checkbox" id="allowDecimals" checked><label for="allowDecimals">Permitir decimales</label></div>
+                    <div class="input-group checkbox-group">
+                        <input type="checkbox" id="allowDecimals" checked><label for="allowDecimals">Permitir decimales</label>
+                    </div>
                 </div>
                 <div class="warning-text">Recuerda: Tu capital está en riesgo. Opera con responsabilidad.</div>
                 <div class="action-buttons">
@@ -179,22 +260,33 @@
         
         <div id="history-screen" class="container hidden fade-in">
             <div class="card">
-                <h2>Mis Estadísticas Generales</h2>
+                <h2>Mis Estadísticas</h2>
                 <div id="personal-stats-panel"></div>
             </div>
             <div class="card">
-                <h2>Gestiona Tus Secciones</h2>
+                <h2>Historial de Sesiones</h2>
                 <div id="saved-sessions-list"></div>
                 <div class="action-buttons">
                     <button class="btn-secondary" id="back-to-menu-from-history-btn">Volver al Menú</button>
                 </div>
             </div>
         </div>
-        
         <footer>
             <div class="social-links">
-                <a href="https://wa.me/5491122514829" target="_blank" title="WhatsApp">💬</a>
-                <a href="https://www.instagram.com/nahu.nz_/" target="_blank" title="Instagram">📷</a>
+                <a data-mdb-ripple-init class="btn btn-primary btn-lg btn-floating"
+                   style="background-color: #25d366;"
+                   href="https://wa.me/5491122514829" target="_blank"
+                   role="button"
+                   title="WhatsApp">
+                   <i class="fab fa-whatsapp"></i>
+                </a>
+                <a data-mdb-ripple-init class="btn btn-primary btn-lg btn-floating"
+                   style="background-color: #ac2bac;"
+                   href="https://www.instagram.com/nahu.nz_/" target="_blank"
+                   role="button"
+                   title="Instagram">
+                   <i class="fab fa-instagram"></i>
+                </a>
             </div>
             <p class="footer-email">crisnahuelnunez@gmail.com</p>
         </footer>
@@ -209,25 +301,6 @@
                 <textarea id="session-notes" rows="4" placeholder="¿Qué aprendiste en esta sesión? ¿Qué patrones observaste?"></textarea>
             </div>
             <button class="btn-primary" id="save-session-btn">Guardar y Volver al Menú</button>
-        </div>
-    </div>
-    
-    <div id="pdf-ticket-template" style="position: fixed; left: -2000px; top: 0; background: #0d1117; padding: 40px;">
-        <p class="page-signature">Gestión Riesgo Pro</p>
-        <div class="trade-ticket" id="trade-ticket-content">
-            <div class="ticket-header">
-                <h2>Session Statistics</h2>
-                <p id="pdf-session-date">--/--/----</p>
-            </div>
-            <div class="ticket-body">
-                <div class="info-item"><span class="label">Nº de Operaciones</span><span class="value" id="pdf-total-ops">0</span></div>
-                <div class="info-item"><span class="label">% de Victorias</span><span class="value" id="pdf-winrate">0%</span></div>
-                <div class="info-item"><span class="label">Balance Inicial</span><span class="value" id="pdf-initial-balance">$0.00</span></div>
-                <div class="info-item"><span class="label">Balance Final</span><span class="value" id="pdf-final-balance">$0.00</span></div>
-                <div class="info-item"><span class="label">Resultado Sesión</span><span class="value" id="pdf-session-result">--</span></div>
-                <div class="info-item"><span class="label">Ganancia/Pérdida</span><span class="value" id="pdf-profit-loss">$0.00</span></div>
-            </div>
-            <div class="ticket-footer"><span id="pdf-session-id">ID de Sesión: </span></div>
         </div>
     </div>
 
