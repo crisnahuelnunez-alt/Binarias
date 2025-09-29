@@ -1,11 +1,32 @@
+/// Función de utilidad para calcular el límite de racha basado en el umbral del 3%
+const calculateLossStreakLimit = (winRate) => {
+    if (winRate >= 1 || winRate <= 0.5) return 20; // Límite de seguridad si el Win Rate es 50% o menos
+    const probLoss = 1 - winRate;
+    let racha = 1;
+    while (true) {
+        let probRacha = Math.pow(probLoss, racha);
+        if (probRacha <= 0.03) { // Umbral del 3%
+            return racha;
+        }
+        racha++;
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+    
     const App = {
         state: {
             currentUser: null, initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
             strategy: 'uas', payout: 0.87,
-            uas: { phase: 'ACUMULACIÓN', takeProfit: 0, stopLoss: 0, riskPerTrade: 5, lossStreakLimit: 4, consecutiveLosses: 0, winnerThreshold: 0, lastLossAmount: 0 },
-            masaniello_pro: { cyclesToComplete: 3, winsPerCycle: 4, tradesPerCycle: 10, currentCycle: 1, cycleWins: 0, cycleTrades: 0, cycleStartCapital: 0 },
-            masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true }
+            uas: { 
+                phase: 'ACUMULACIÓN', takeProfit: 0, stopLoss: 0, riskPerTrade: 5, lossStreakLimit: 4, 
+                consecutiveLosses: 0, winnerThreshold: 0, lastLossAmount: 0, expectedWinRate: 0 
+            },
+            masaniello_pro: { cyclesToComplete: 3, winsPerCycle: 4, tradesPerCycle: 10, currentCycle: 1, cycleWins: 0, cycleTrades: 0, cycleStartCapital: 0, fixedRiskCapital: 100 },
+            masaniello: { 
+                totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true, 
+                lastLossAmount: 0, recoveryMode: false, currentLossStreakAmount: 0 
+            }
         },
         ui: {
             userScreen: document.getElementById('user-screen'),
@@ -39,10 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
             uasStopLoss: document.getElementById('uas-stop-loss'),
             uasRiskPercent: document.getElementById('uas-risk-percent'),
             uasLossStreak: document.getElementById('uas-loss-streak'),
+            uasWinRateSetup: document.getElementById('uas-win-rate-setup'),
             masanielloProGroup: document.getElementById('masaniello-pro-group'),
             masaProCycles: document.getElementById('masa-pro-cycles'),
             masaProWins: document.getElementById('masa-pro-wins'),
             masaProTrades: document.getElementById('masa-pro-trades'),
+            masaProFixedRisk: document.getElementById('masa-pro-fixed-risk'),
             masanielloGroup: document.getElementById('masaniello-group'),
             masaTakeProfit: document.getElementById('masa-take-profit'),
             masaEarlyExit: document.getElementById('masa-early-exit'),
@@ -61,7 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
             personalStatsPanel: document.getElementById('personal-stats-panel'),
             sessionEndModal: document.getElementById('session-end-modal'),
         },
-        charts: { balanceChart: null, sessionPlChart: null },
+        charts: {
+            balanceChart: null,
+            sessionPlChart: null
+        },
         showNotification(message, type = 'info') {
             const container = document.getElementById('notification-container');
             const notification = document.createElement('div');
@@ -70,6 +96,28 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(notification);
             setTimeout(() => { notification.remove(); }, 4000);
         },
+        // --- FUNCIÓN DE CONEXIÓN AL BACKEND PYTHON ---
+        async validarEstrategiaEnPython(winRate, payout) {
+            const url = "http://127.0.0.1:5000/analizar-uas"; 
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ winRate: winRate, payout: payout }) 
+                });
+
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+
+                const data = await response.json();
+                return data; 
+                
+            } catch (error) {
+                this.showNotification(`Error: El servidor Python no está corriendo. Inicia 'app_backend.py'.`, 'error');
+                console.error("Fetch Error:", error);
+                return { status: "error", mensaje: "No hay conexión con el backend." }; 
+            }
+        },
+        // --- FIN FUNCIÓN DE CONEXIÓN ---
         math: {
             combinations(n, k) { if (k < 0 || k > n) return 0; if (k === 0 || k === n) return 1; if (k > n / 2) k = n - k; let r = 1; for (let i = 1; i <= k; i++) { r = r * (n - i + 1) / i; } return r; },
             calculateMasanielloInvestment(K, N, E, Q) { let C = 1, T = 0, Ev = 0; if (N <= 0 || E <= 0 || E > N) return K; for (let i = 0; i <= N - E; i++) { Ev = E + i; T += this.combinations(Ev - 1, E - 1) * Math.pow(Q - 1, E) * Math.pow(1, i); } C = T / Math.pow(Q, N); if (C >= 1) return K; return (K * C) / (1 - C); }
@@ -82,7 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.state.currentUser = loggedInUser;
                 if (hash && hash !== 'user') { this._displayScreen(hash); } 
                 else { this.showScreen('main-menu'); }
-            } else { this._displayScreen('user'); }
+            } else {
+                this._displayScreen('user');
+            }
             Chart.defaults.color = 'rgba(234, 234, 234, 0.8)';
             Chart.defaults.font.family = "'Inter', sans-serif";
             Chart.defaults.borderColor = 'rgba(0, 255, 255, 0.2)';
@@ -127,7 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         showScreen(screenName) {
             const currentHash = window.location.hash.substring(1);
-            if (screenName !== currentHash) { history.pushState({ screen: screenName }, '', `#${screenName}`); }
+            if (screenName !== currentHash) {
+                history.pushState({ screen: screenName }, '', `#${screenName}`);
+            }
             this._displayScreen(screenName);
         },
         _displayScreen(screenName) {
@@ -137,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.historyScreen.classList.add('hidden');
             this.ui.statsScreen.classList.add('hidden');
             this.ui.sessionEndModal.classList.add('hidden');
+            
             let elementToShow;
             if (screenName === 'user') { elementToShow = this.ui.userScreen; }
             else if (screenName === 'main-menu') { elementToShow = this.ui.mainMenuScreen; }
@@ -147,24 +200,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.ui.uasStopLoss.value = lastBalance ? (lastBalance * 0.8).toFixed(0) : '20';
                 elementToShow = this.ui.dashboard;
             }
-            else if (screenName === 'history') { this.renderAllUserSessions(); elementToShow = this.ui.historyScreen; }
-            else if (screenName === 'stats') { this.renderStatsPage(); elementToShow = this.ui.statsScreen; }
+            else if (screenName === 'history') {
+                this.renderAllUserSessions();
+                elementToShow = this.ui.historyScreen;
+            }
+            else if (screenName === 'stats') {
+                this.renderStatsPage();
+                elementToShow = this.ui.statsScreen;
+            }
+
             if (elementToShow) {
                 elementToShow.classList.remove('hidden');
                 void elementToShow.offsetWidth;
-                elementToShow.classList.add('fade-in');
+                
+                // MODIFICACIÓN: Aplicar fade-in al elemento interno que contiene el contenido
+                const fadeElement = elementToShow.querySelector('.fade-in') || elementToShow;
+                fadeElement.classList.add('fade-in');
             }
         },
-        getLastBalance() { const sessions = this.loadUserSessions(); return sessions.length > 0 ? sessions[0].finalBalance : null; },
-        loadUserSessions() { if (!this.state.currentUser) return []; return JSON.parse(localStorage.getItem(`tradingSessions_${this.state.currentUser}`)) || []; },
-        saveUserSessions(sessions) { if (!this.state.currentUser) return; localStorage.setItem(`tradingSessions_${this.state.currentUser}`, JSON.stringify(sessions)); },
+        getLastBalance() {
+            const sessions = this.loadUserSessions();
+            return sessions.length > 0 ? sessions[0].finalBalance : null;
+        },
+        loadUserSessions() {
+            if (!this.state.currentUser) return [];
+            return JSON.parse(localStorage.getItem(`tradingSessions_${this.state.currentUser}`)) || [];
+        },
+        saveUserSessions(sessions) {
+            if (!this.state.currentUser) return;
+            localStorage.setItem(`tradingSessions_${this.state.currentUser}`, JSON.stringify(sessions));
+        },
         saveSession() {
             const notes = this.ui.sessionNotes.value;
             const profitLoss = this.state.currentBalance - this.state.initialBalance;
             const sessionData = {
                 date: new Date().toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
-                initialBalance: this.state.initialBalance, finalBalance: this.state.currentBalance,
-                profitLoss, history: this.state.history, notes
+                initialBalance: this.state.initialBalance,
+                finalBalance: this.state.currentBalance,
+                profitLoss: profitLoss,
+                history: this.state.history,
+                notes: notes
             };
             let savedSessions = this.loadUserSessions();
             savedSessions.unshift(sessionData);
@@ -177,32 +252,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const sessions = this.loadUserSessions();
             this.calculateAndDisplayPersonalStats(sessions);
             const container = this.ui.savedSessionsList;
-            if (sessions.length === 0) { container.innerHTML = '<p>No hay sesiones guardadas.</p>'; return; }
+            if (sessions.length === 0) {
+                container.innerHTML = '<p>No hay sesiones guardadas todavía para este usuario.</p>';
+                return;
+            }
             container.innerHTML = '';
-            sessions.forEach((session, index) => {
+            sessions.forEach((session) => {
                 const profitColor = session.profitLoss >= 0 ? 'var(--color-win)' : 'var(--color-loss)';
                 let historyTableHTML = '<table><thead><tr><th>Op#</th><th>Ciclo</th><th>Invertido</th><th>Resultado</th><th>G/P</th><th>Balance</th></tr></thead><tbody>';
-                if(session.history && session.history.length > 0) {
-                    session.history.forEach(op => {
-                        const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
-                        const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
-                        const cycleText = op.cycle ? op.cycle : '-';
-                        historyTableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>${cycleText}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
-                    });
-                } else {
-                    historyTableHTML += `<tr><td colspan="6">No hay operaciones registradas en esta sesión.</td></tr>`;
-                }
+                session.history.forEach(op => {
+                     const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
+                     const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
+                     const cycleText = op.cycle ? op.cycle : '-';
+                     historyTableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>${cycleText}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
+                });
                 historyTableHTML += '</tbody></table>';
                 const sessionElement = document.createElement('details');
                 sessionElement.className = 'session-details';
                 sessionElement.innerHTML = `
-                    <summary>
-                        <div>
-                            <span>${session.date}</span>
-                            <span style="color: ${profitColor}; font-weight: 800; margin-left: 20px;">G/P: $${session.profitLoss.toFixed(2)}</span>
-                        </div>
-                        <button class="download-btn" data-session-index="${index}">Descargar Resumen</button>
-                    </summary>
+                    <summary><span>${session.date}</span><span style="color: ${profitColor}; font-weight: 800;">G/P: $${session.profitLoss.toFixed(2)}</span></summary>
                     <div class="session-details-content">
                         <p><strong>Balance:</strong> $${session.initialBalance.toFixed(2)} ➔ $${session.finalBalance.toFixed(2)}</p>
                         ${historyTableHTML}
@@ -210,41 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="session-notes">${session.notes || '<em>Sin notas.</em>'}</div>
                     </div>`;
                 container.appendChild(sessionElement);
-            });
-            document.querySelectorAll('.download-btn').forEach(button => {
-                button.addEventListener('click', (event) => {
-                    event.preventDefault(); event.stopPropagation();
-                    const sessionIndex = event.target.getAttribute('data-session-index');
-                    this.generatePdfForSession(parseInt(sessionIndex));
-                });
-            });
-        },
-        generatePdfForSession(sessionIndex) {
-            this.showNotification('Generando resumen PDF...', 'info');
-            const sessions = this.loadUserSessions();
-            const sessionData = sessions[sessionIndex];
-            if (!sessionData || !sessionData.history) { this.showNotification('No hay datos de operaciones para generar el PDF.', 'error'); return; }
-            const wins = sessionData.history.filter(op => op.result === 'WIN').length;
-            const totalOps = sessionData.history.length;
-            const winrate = totalOps > 0 ? (wins / totalOps) * 100 : 0;
-            const isProfit = sessionData.profitLoss >= 0;
-            document.getElementById('pdf-session-date').textContent = sessionData.date;
-            document.getElementById('pdf-total-ops').textContent = totalOps;
-            document.getElementById('pdf-winrate').textContent = `${winrate.toFixed(1)}%`;
-            document.getElementById('pdf-initial-balance').textContent = `$${sessionData.initialBalance.toFixed(2)}`;
-            document.getElementById('pdf-final-balance').textContent = `$${sessionData.finalBalance.toFixed(2)}`;
-            document.getElementById('pdf-session-result').textContent = isProfit ? 'GANANCIA' : 'PÉRDIDA';
-            document.getElementById('pdf-profit-loss').textContent = `${isProfit ? '+' : ''}$${sessionData.profitLoss.toFixed(2)}`;
-            document.getElementById('pdf-session-id').textContent = `ID de Sesión: ${Math.floor(100000 + Math.random() * 900000)}`;
-            const ticketElements = [document.getElementById('pdf-winrate'), document.getElementById('pdf-session-result'), document.getElementById('pdf-profit-loss')];
-            ticketElements.forEach(el => { el.classList.remove('profit', 'loss'); el.classList.add(isProfit ? 'profit' : 'loss'); });
-            const ticketElement = document.getElementById('pdf-ticket-template');
-            html2canvas(ticketElement, { scale: 2, backgroundColor: "#0d1117" }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'p', unit: 'px', format: [canvas.width, canvas.height] });
-                pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-                pdf.save(`resumen-sesion-${sessionData.date.split(',')[0].replace(/\//g, '-')}.pdf`);
             });
         },
         calculateAndDisplayPersonalStats(sessions) {
@@ -259,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             const totalLosses = totalTrades - totalWins;
-            const winRate = totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0;
+            const winRate = totalTrades > 0 ? (totalWins / totalTrades * 100) : 0;
             this.ui.personalStatsPanel.innerHTML = `
                 <div class="stats-item"><span class="stats-label">Total Sesiones</span><span class="stats-value">${totalSessions}</span></div>
                 <div class="stats-item"><span class="stats-label">G/P Neto</span><span class="stats-value ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">$${totalProfitLoss.toFixed(2)}</span></div>
@@ -269,21 +302,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="stats-item"><span class="stats-label">Operaciones Perdidas</span><span class="stats-value negative">${totalLosses}</span></div>`;
         },
         renderStatsPage() {
+            // Re-insertar la estructura HTML base por si fue eliminada en un mensaje de "no hay datos"
             this.ui.statsScreen.innerHTML = `
                 <div class="card">
                     <h2>Panel de Estadísticas</h2>
                     <div class="stats-highlight-grid">
-                        <div class="stats-highlight-card"><span class="label">Win Rate General</span><span class="value" id="overall-winrate-value">0%</span><span class="date">Ratio de Aciertos</span></div>
-                        <div class="stats-highlight-card"><span class="label">Racha Victorias</span><span class="value positive" id="longest-streak-value">0</span><span class="date">Operaciones</span></div>
-                        <div class="stats-highlight-card"><span class="label">Racha Pérdidas</span><span class="value negative" id="longest-loss-streak-value">0</span><span class="date">Operaciones</span></div>
                         <div class="stats-highlight-card"><span class="label">Mejor Sesión (G/P)</span><span class="value positive" id="best-session-value">$0.00</span><span class="date" id="best-session-date">--/--/----</span></div>
-                    </div>
-                </div>
-                <div class="card">
-                    <h2>Salón de la Fama (Récords Semanales)</h2>
-                    <div class="stats-highlight-grid">
-                        <div class="stats-highlight-card"><span class="label">Mejor Semana (Ganancia)</span><span class="value positive" id="best-week-profit-value">$0.00</span><span class="date" id="best-week-profit-date">Semana --</span></div>
-                        <div class="stats-highlight-card"><span class="label">Mejor Semana (Win Rate)</span><span class="value" id="best-week-winrate-value">0%</span><span class="date" id="best-week-winrate-date">Semana --</span></div>
+                        <div class="stats-highlight-card"><span class="label">Mayor Racha de Victorias</span><span class="value" id="longest-streak-value">0</span><span class="date">Operaciones</span></div>
+                        <div class="stats-highlight-card"><span class="label">Sesión más Efectiva</span><span class="value" id="best-winrate-value">0%</span><span class="date" id="best-winrate-date">--/--/----</span></div>
                     </div>
                 </div>
                 <div class="card"><h2>Evolución del Capital</h2><canvas id="balance-chart"></canvas></div>
@@ -291,70 +317,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="action-buttons"><button class="btn-secondary" id="back-to-menu-from-stats-btn">Volver al Menú</button></div>`;
             this.ui.backToMenuFromStatsBtn = document.getElementById('back-to-menu-from-stats-btn');
             this.ui.backToMenuFromStatsBtn.addEventListener('click', () => this.showScreen('main-menu'));
+
             const sessions = this.loadUserSessions().slice().reverse();
             if (!sessions || sessions.length === 0) {
-                this.ui.statsScreen.querySelector('.card').innerHTML = `<h2>Panel de Estadísticas</h2><p>No hay datos suficientes. ¡Completa al menos una sesión!</p>`;
+                this.ui.statsScreen.querySelector('.card').innerHTML = `
+                    <h2>Panel de Estadísticas</h2>
+                    <p>No hay datos suficientes para generar estadísticas. ¡Completa al menos una sesión!</p>`;
                 return;
             }
-            let bestSession = { profit: -Infinity, date: '' }, longestWinStreak = 0, currentWinStreak = 0, longestLossStreak = 0, currentLossStreak = 0, totalTrades = 0, totalWins = 0;
+
+            let bestSession = { profit: -Infinity, date: '' },
+                bestWinRateSession = { rate: -1, date: '' },
+                longestStreak = 0, currentStreak = 0;
+
             sessions.forEach(session => {
                 if (session.profitLoss > bestSession.profit) bestSession = { profit: session.profitLoss, date: session.date };
+                
                 if (session.history && session.history.length > 0) {
+                    let wins = 0;
                     session.history.forEach(op => {
-                        totalTrades++;
-                        if (op.result === 'WIN') {
-                            totalWins++; currentWinStreak++;
-                            longestLossStreak = Math.max(longestLossStreak, currentLossStreak); currentLossStreak = 0;
-                        } else {
-                            currentLossStreak++;
-                            longestWinStreak = Math.max(longestWinStreak, currentWinStreak); currentWinStreak = 0;
-                        }
+                        if (op.result === 'WIN') { wins++; currentStreak++; }
+                        else { longestStreak = Math.max(longestStreak, currentStreak); currentStreak = 0; }
                     });
+                    longestStreak = Math.max(longestStreak, currentStreak);
+                    const winRate = (wins / session.history.length) * 100;
+                    if (winRate > bestWinRateSession.rate) {
+                        bestWinRateSession = { rate: winRate, date: session.date };
+                    }
                 }
             });
-            longestWinStreak = Math.max(longestWinStreak, currentWinStreak);
-            longestLossStreak = Math.max(longestLossStreak, currentLossStreak);
-            const overallWinRate = totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0;
-            document.getElementById('overall-winrate-value').textContent = `${overallWinRate.toFixed(1)}%`;
+
             document.getElementById('best-session-value').textContent = `$${bestSession.profit.toFixed(2)}`;
             document.getElementById('best-session-date').textContent = bestSession.date;
-            document.getElementById('longest-streak-value').textContent = longestWinStreak;
-            document.getElementById('longest-loss-streak-value').textContent = longestLossStreak;
-            const weeklyStats = {};
-            const getWeekNumber = d => {
-                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-                var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-                return `${d.getUTCFullYear()}-W${Math.ceil((((d - yearStart) / 86400000) + 1) / 7)}`;
-            };
-            sessions.forEach(session => {
-                const parts = session.date.match(/(\d+)/g);
-                if (!parts || parts.length < 3) return;
-                const sessionDate = new Date(parts[2], parts[1] - 1, parts[0]);
-                const weekId = getWeekNumber(sessionDate);
-                if (!weeklyStats[weekId]) weeklyStats[weekId] = { profit: 0, wins: 0, trades: 0 };
-                weeklyStats[weekId].profit += session.profitLoss;
-                if(session.history) {
-                    weeklyStats[weekId].trades += session.history.length;
-                    weeklyStats[weekId].wins += session.history.filter(op => op.result === 'WIN').length;
-                }
-            });
-            let bestWeekProfit = { id: 'Semana --', value: -Infinity }, bestWeekWinRate = { id: 'Semana --', value: -1 };
-            for (const weekId in weeklyStats) {
-                if (weeklyStats[weekId].profit > bestWeekProfit.value) bestWeekProfit = { id: weekId.replace('-W', ' / Sem '), value: weeklyStats[weekId].profit };
-                const weekWinRate = weeklyStats[weekId].trades > 0 ? (weeklyStats[weekId].wins / weeklyStats[weekId].trades) * 100 : 0;
-                if (weekWinRate > bestWeekWinRate.value) bestWeekWinRate = { id: weekId.replace('-W', ' / Sem '), value: weekWinRate };
-            }
-            document.getElementById('best-week-profit-value').textContent = `$${bestWeekProfit.value.toFixed(2)}`;
-            document.getElementById('best-week-profit-date').textContent = bestWeekProfit.id;
-            document.getElementById('best-week-winrate-value').textContent = `${bestWeekWinRate.value.toFixed(1)}%`;
-            document.getElementById('best-week-winrate-date').textContent = bestWeekWinRate.id;
+            document.getElementById('longest-streak-value').textContent = longestStreak;
+            document.getElementById('best-winrate-value').textContent = `${bestWinRateSession.rate.toFixed(1)}%`;
+            document.getElementById('best-winrate-date').textContent = bestWinRateSession.date;
+
             const balanceHistory = [], sessionPLs = [], labels = [];
             sessions.forEach(session => {
                 balanceHistory.push(session.finalBalance);
                 sessionPLs.push(session.profitLoss);
                 labels.push(session.date.split(',')[0]);
             });
+
             this.renderBalanceChart(labels, balanceHistory);
             this.renderSessionPLChart(labels.slice(-15), sessionPLs.slice(-15));
         },
@@ -364,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.charts.balanceChart = new Chart(ctx, {
                 type: 'line',
                 data: { labels, datasets: [{ label: 'Capital Acumulado', data, borderColor: 'rgba(0, 255, 255, 1)', backgroundColor: 'rgba(0, 255, 255, 0.2)', fill: true, tension: 0.3 }] },
-                options: { scales: { y: { beginAtZero: false, ticks: { callback: (value) => `$${value}` } } } }
+                options: { scales: { y: { beginAtZero: false } } }
             });
         },
         renderSessionPLChart(labels, data) {
@@ -373,15 +378,15 @@ document.addEventListener('DOMContentLoaded', () => {
             this.charts.sessionPlChart = new Chart(ctx, {
                 type: 'bar',
                 data: { labels, datasets: [{ label: 'Ganancia/Pérdida por Sesión', data, backgroundColor: data.map(v => v >= 0 ? 'rgba(57, 255, 20, 0.7)' : 'rgba(255, 45, 85, 0.7)'), borderColor: data.map(v => v >= 0 ? '#39FF14' : '#FF2D55'), borderWidth: 1 }] },
-                options: { scales: { y: { beginAtZero: true, ticks: { callback: (value) => `$${value}` } } } }
+                options: { scales: { y: { beginAtZero: true } } }
             });
         },
         resetSessionState() {
             Object.assign(this.state, {
                 initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
-                uas: { phase: 'ACUMULACIÓN', takeProfit: 0, stopLoss: 0, riskPerTrade: 5, lossStreakLimit: 4, consecutiveLosses: 0, winnerThreshold: 0, lastLossAmount: 0 },
-                masaniello_pro: { cyclesToComplete: 3, winsPerCycle: 4, tradesPerCycle: 10, currentCycle: 1, cycleWins: 0, cycleTrades: 0, cycleStartCapital: 0 },
-                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true }
+                uas: { phase: 'ACUMULACIÓN', takeProfit: 0, stopLoss: 0, riskPerTrade: 5, lossStreakLimit: 4, consecutiveLosses: 0, winnerThreshold: 0, lastLossAmount: 0, expectedWinRate: 0 },
+                masaniello_pro: { cyclesToComplete: 3, winsPerCycle: 4, tradesPerCycle: 10, currentCycle: 1, cycleWins: 0, cycleTrades: 0, cycleStartCapital: 0, fixedRiskCapital: 100 },
+                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true, lastLossAmount: 0, recoveryMode: false, currentLossStreakAmount: 0 }
             });
             this.ui.scoreboard.classList.add('hidden');
             this.ui.setupCard.classList.remove('hidden');
@@ -392,28 +397,46 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.sessionNotes.value = '';
             this.updateUI();
         },
-        startTrading() {
+        async startTrading() {
             const balance = parseFloat(this.ui.initialBalanceInput.value);
             if (!balance || balance <= 0) { this.showNotification("Introduce un capital inicial válido.", 'error'); return; }
             this.state.initialBalance = balance;
             this.state.currentBalance = balance;
             this.state.strategy = this.ui.strategySelect.value;
             this.state.payout = parseFloat(this.ui.payoutRateInput.value) / 100;
+            
+            // --- LÓGICA UNIVERSAL DE VALIDACIÓN Y CÁLCULO ---
             if (this.state.strategy === 'uas') {
+                const winRateValue = parseFloat(this.ui.uasWinRateSetup.value); // Valor en %
+                const payoutValue = parseFloat(this.ui.payoutRateInput.value); // Valor en %
+
+                // Llama a la función de conexión y espera el resultado de Python (punto de equilibrio y límite de racha)
+                const analisis = await this.validarEstrategiaEnPython(winRateValue, payoutValue);
+                
+                if (analisis.status === 'inviable' || analisis.status === 'error') {
+                    this.showNotification(`⚠️ ${analisis.mensaje}`, 'error'); 
+                    return;
+                }
+
+                // Si es viable, actualiza los límites con el cálculo de Python
+                this.state.uas.expectedWinRate = winRateValue / 100;
+                this.state.uas.lossStreakLimit = analisis.limiteRacha; 
+                
                 this.state.uas.takeProfit = this.state.initialBalance * 1.20;
                 this.state.uas.stopLoss = parseFloat(this.ui.uasStopLoss.value);
                 this.state.uas.riskPerTrade = parseFloat(this.ui.uasRiskPercent.value);
-                this.state.uas.lossStreakLimit = parseInt(this.ui.uasLossStreak.value);
                 this.state.uas.winnerThreshold = this.state.initialBalance * 1.10;
                 if (this.state.uas.stopLoss >= this.state.initialBalance) { this.showNotification("El límite de pérdida debe ser menor que tu capital inicial.", 'error'); return; }
+
             } else if (this.state.strategy === 'masaniello_pro') {
                 const m = this.state.masaniello_pro;
                 m.cyclesToComplete = parseInt(this.ui.masaProCycles.value);
                 m.winsPerCycle = parseInt(this.ui.masaProWins.value);
                 m.tradesPerCycle = parseInt(this.ui.masaProTrades.value);
                 m.cycleStartCapital = balance;
+                m.fixedRiskCapital = parseFloat(this.ui.masaProFixedRisk.value); // Obtener el capital de riesgo fijo
                 if (m.winsPerCycle >= m.tradesPerCycle) { this.showNotification("Las ganadas deben ser menores que las operaciones por ciclo.", 'error'); return; }
-            } else {
+            } else { // Masaniello Clásico
                 const m = this.state.masaniello;
                 m.takeProfit = parseFloat(this.ui.masaTakeProfit.value);
                 m.earlyExitEnabled = this.ui.masaEarlyExit.checked;
@@ -421,30 +444,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 m.expectedWins = parseInt(this.ui.masanielloGroup.querySelector('#expected-wins').value);
                 if (m.expectedWins >= m.totalTrades) { this.showNotification("Las ganadas esperadas deben ser menores que el total de operaciones.", 'error'); return; }
             }
+
             this.ui.scoreboard.classList.remove('hidden');
             this.ui.liveCard.classList.remove('hidden');
             this.ui.historyCard.classList.remove('hidden');
             this.ui.setupCard.classList.add('hidden');
             this.updateScoreboard();
             this.calculateNextInvestment();
+            if (this.state.strategy === 'uas') {
+                this.showNotification(`Iniciando sesión con ALTO automático a ${this.state.uas.lossStreakLimit} pérdidas.`, 'info');
+            }
         },
         calculateNextInvestment() {
             let investment = 0;
             const strategy = this.state.strategy;
             if (strategy === 'uas') {
                 const uas = this.state.uas;
-                if (uas.phase === 'ACUMULACIÓN') { investment = this.state.currentBalance * (uas.riskPerTrade / 100); }
-                else if (uas.phase === 'RECUPERACIÓN') {
-                    const baseInvestment = this.state.currentBalance * (uas.riskPerTrade / 100);
-                    investment = baseInvestment + (uas.lastLossAmount * 0.33);
-                } else {
+                const riskPercent = uas.riskPerTrade / 100;
+                
+                if (uas.phase === 'ACUMULACIÓN') { 
+                    // Inversión: Capital Actual * % de Riesgo
+                    investment = this.state.currentBalance * riskPercent; 
+                    
+                } else if (uas.phase === 'RECUPERACIÓN') {
+                    // Inversión: % de Riesgo + (33% de la Última Pérdida)
+                    investment = (this.state.currentBalance * riskPercent) + (uas.lastLossAmount * 0.33);
+                    
+                } else { // WINNER
                     const profit = this.state.currentBalance - this.state.initialBalance;
+                    // Inversión: % de la Ganancia Acumulada
                     investment = profit * 0.30;
                 }
-            } else {
+            } else { // Masaniello Clásico y PRO
                 const m = strategy === 'masaniello_pro' ? this.state.masaniello_pro : this.state.masaniello;
-                const calculationCapital = strategy === 'masaniello_pro' ? m.cycleStartCapital : this.state.currentBalance;
-                investment = this.math.calculateMasanielloInvestment(calculationCapital, (strategy === 'masaniello_pro' ? m.tradesPerCycle : m.totalTrades) - (strategy === 'masaniello_pro' ? m.cycleTrades : m.tradesDone), (strategy === 'masaniello_pro' ? m.winsPerCycle : m.expectedWins) - (strategy === 'masaniello_pro' ? m.cycleWins : m.winsSoFar), 1 + this.state.payout);
+                
+                // 1. CÁLCULO BASE DE MASANIELLO
+                const capitalBase = strategy === 'masaniello_pro' ? m.fixedRiskCapital : this.state.currentBalance;
+                const wins = strategy === 'masaniello_pro' ? m.cycleWins : m.winsSoFar;
+                const trades = strategy === 'masaniello_pro' ? m.cycleTrades : m.tradesDone;
+                const expected = strategy === 'masaniello_pro' ? m.winsPerCycle : m.expectedWins;
+                const total = strategy === 'masaniello_pro' ? m.tradesPerCycle : m.totalTrades;
+                
+                // Calcula el monto que Masaniello dice que debes invertir (Conservador)
+                const masanielloInvestmentBase = this.math.calculateMasanielloInvestment(capitalBase, total - trades, expected - wins, 1 + this.state.payout);
+                
+                let investmentCalculated = masanielloInvestmentBase;
+
+                // --- LÓGICA DE RECUPERACIÓN EN BLOQUE (ESTRATEGIA 3) ---
+                if (strategy === 'masaniello' && m.recoveryMode) {
+                    const amountToRecover = m.currentLossStreakAmount;
+                    // Inversión agresiva para recuperar: (Pérdidas acumuladas + 10% extra) / Payout
+                    investmentCalculated = (amountToRecover + (amountToRecover * 0.10)) / this.state.payout; 
+                    
+                    // Nos aseguramos de que la inversión sea al menos la de Masaniello si es viable
+                    investmentCalculated = Math.max(investmentCalculated, masanielloInvestmentBase); 
+                }
+                // --- FIN LÓGICA DE RECUPERACIÓN EN BLOQUE ---
+
+                
+                // --- REGLA DE ORO UNIVERSAL: LÍMITE DEL 10% ---
+                const maxRiskAllowed = this.state.currentBalance * 0.10; 
+                
+                // La inversión final es el mínimo entre el cálculo de la estrategia y el límite del 10%
+                investment = Math.min(investmentCalculated, maxRiskAllowed);
             }
             if (!this.ui.allowDecimals.checked) investment = Math.round(investment);
             investment = Math.max(1, investment);
@@ -483,8 +545,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     else { uas.phase = 'ACUMULACIÓN'; }
                 }
             } else if (this.state.strategy === 'masaniello') {
-                this.state.masaniello.tradesDone++;
-                if (isWin) this.state.masaniello.winsSoFar++;
+                const m = this.state.masaniello;
+                m.tradesDone++;
+                if (isWin) {
+                    m.winsSoFar++;
+                    
+                    // --- RECUPERACIÓN EXITOSA ---
+                    if (m.recoveryMode) {
+                        m.currentLossStreakAmount = 0; // Se cubrieron las pérdidas, reinicia el contador
+                        m.recoveryMode = false;      // Sale del modo de recuperación
+                    }
+                    
+                    m.lastLossAmount = 0;
+                } else {
+                    // --- ENTRA/SUMA AL MODO DE RECUPERACIÓN ---
+                    m.lastLossAmount = this.state.lastInvestment;
+                    m.currentLossStreakAmount += this.state.lastInvestment; // Suma la pérdida actual
+                    m.recoveryMode = true; // Activa/Mantiene activo el modo de recuperación
+                }
             } else if (this.state.strategy === 'masaniello_pro') {
                 this.state.masaniello_pro.cycleTrades++;
                 if (isWin) this.state.masaniello_pro.cycleWins++;
@@ -493,7 +571,18 @@ document.addEventListener('DOMContentLoaded', () => {
         checkSessionEnd() {
             if (this.state.strategy === 'uas') {
                 const uas = this.state.uas;
-                return this.state.currentBalance >= uas.takeProfit || this.state.currentBalance <= uas.stopLoss || uas.consecutiveLosses >= uas.lossStreakLimit;
+                if (this.state.currentBalance <= uas.stopLoss) {
+                    this.showNotification('❌ Límite de Pérdida Alcanzado', 'error');
+                    return true;
+                }
+                if (uas.consecutiveLosses >= uas.lossStreakLimit) {
+                    this.showNotification(`🚨 Límite de Racha Negativa (${uas.lossStreakLimit}) Alcanzado. ¡ALTO!`, 'error');
+                    return true;
+                }
+                if (this.state.currentBalance >= uas.takeProfit) {
+                    this.showNotification('✅ ¡Meta de Ganancia Alcanzada!', 'success');
+                    return true;
+                }
             } else if (this.state.strategy === 'masaniello') {
                 const m = this.state.masaniello;
                 const remTrades = m.totalTrades - m.tradesDone;
@@ -508,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.handleCycleWin();
                     return false;
                 }
-                return remWins > remTrades || remTrades <= 0;
+                return remTrades <= 0;
             }
             return this.state.currentBalance < 1;
         },
@@ -525,7 +614,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             const profitLoss = this.state.currentBalance - this.state.initialBalance;
             const profitLossPercent = (this.state.initialBalance > 0) ? (profitLoss / this.state.initialBalance) * 100 : 0;
-            let resultText;
+            let resultText = this.state.currentBalance > this.state.initialBalance ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
+            
             if (this.state.strategy === 'uas') {
                 if (this.state.currentBalance >= this.state.uas.takeProfit) resultText = '✅ ¡Meta de Ganancia Alcanzada!';
                 else if (this.state.currentBalance <= this.state.uas.stopLoss) resultText = '❌ Límite de Pérdida Alcanzado';
@@ -540,6 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (m.winsSoFar >= m.expectedWins) resultText = '✅ ¡Ciclo Masaniello Exitoso!';
                 else resultText = '❌ Ciclo Masaniello Fallido';
             }
+
             const resultColor = (this.state.currentBalance > this.state.initialBalance) ? 'var(--color-win)' : 'var(--color-loss)';
             this.ui.journalSummary.innerHTML = `<p style="font-size: 1.4em;"><strong>Resultado:</strong> <span style="color: ${resultColor};">${resultText}</span></p>
                 <p>Balance Final: $${this.state.currentBalance.toFixed(2)}</p>
@@ -550,13 +641,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         renderHistory() {
             let tableHTML = `<table><thead><tr><th>Op#</th><th>Ciclo</th><th>Invertido</th><th>Resultado</th><th>G/P</th><th>Balance</th></tr></thead><tbody>`;
-            if (this.state.history && this.state.history.length > 0) {
-                for (const op of this.state.history) {
-                    const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
-                    const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
-                    const cycleText = op.cycle ? op.cycle : '-';
-                    tableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>${cycleText}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
-                }
+            for (const op of this.state.history) {
+                const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
+                const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
+                const cycleText = op.cycle ? op.cycle : '-';
+                tableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>${cycleText}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
             }
             this.ui.tableContent.innerHTML = tableHTML + '</tbody></table>';
         },
@@ -568,6 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (uas.phase === 'WINNER') this.ui.phaseDisplay.style.color = 'var(--color-secondary)';
                 else if (uas.phase === 'RECUPERACIÓN') this.ui.phaseDisplay.style.color = 'var(--color-loss)';
                 else this.ui.phaseDisplay.style.color = 'var(--color-warning)';
+                
             } else if (this.state.strategy === 'masaniello') {
                 const m = this.state.masaniello;
                 this.ui.phaseDisplay.innerText = `GANADAS: ${m.winsSoFar} de ${m.expectedWins}`;
@@ -601,10 +691,18 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.uasGroup.classList.toggle('hidden', strategy !== 'uas');
             this.ui.masanielloGroup.classList.toggle('hidden', strategy !== 'masaniello');
             this.ui.masanielloProGroup.classList.toggle('hidden', strategy !== 'masaniello_pro');
+            
+            // Mostrar u ocultar el campo de Win Rate en la configuración UAS
+            if (strategy === 'uas') {
+                 this.ui.uasWinRateSetup.closest('.input-group').classList.remove('hidden'); 
+            } else {
+                 this.ui.uasWinRateSetup.closest('.input-group').classList.add('hidden');
+            }
+            
             const info = {
-                'uas': { borderColor: 'var(--color-secondary)', title: '<strong>ESTRATEGIA UNIVERSAL DE ACUMULACIÓN (UAS)</strong>', description: 'Plan de progreso con fases de acumulación, ganancia y recuperación.', warning: 'Define tu riesgo y el sistema se adapta.' },
-                'masaniello_pro': { borderColor: 'var(--color-primary)', title: '<strong>MASANIELLO PRO (Etapas)</strong>', description: 'Encadena ciclos de Masaniello para un crecimiento exponencial.', warning: 'Alto riesgo. Un ciclo fallido termina la campaña.' },
-                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>MASANIELLO CLÁSICO</strong>', description: 'Calcula la inversión para un objetivo de aciertos fijos.', warning: 'Activa la Salida Anticipada para mayor seguridad.' }
+                'uas': { borderColor: 'var(--color-secondary)', title: '<strong>ESTRATEGIA 1: RIESGO INTELIGENTE</strong>', description: 'Plan de progreso con fases de acumulación, ganancia y recuperación. Se detiene automáticamente con la regla del 3%.', warning: 'El límite de racha se CALCULA automáticamente. Requiere que el servidor Python esté corriendo.' },
+                'masaniello_pro': { borderColor: 'var(--color-primary)', title: '<strong>ESTRATEGIA 2: MASANIELLO SECCIONES</strong>', description: 'Encadena ciclos de Masaniello para un crecimiento exponencial. La inversión se limita a un capital de riesgo fijo, no al balance total.', warning: 'Alto riesgo. Un ciclo fallido termina la campaña.' },
+                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>ESTRATEGIA 3: MASANIELLO BÁSICO</strong>', description: 'Cálculo de inversión conservador con un modo de Martingala Controlada para recuperación rápida. **RIESGO MÁXIMO DEL 10% POR OPERACIÓN**.', warning: 'Activa la Salida Anticipada para mayor seguridad. Usa Martingala Controlada tras una pérdida.' }
             };
             this.ui.strategyInfoBox.style.borderColor = info[strategy].borderColor;
             this.ui.strategyInfoBox.innerHTML = `<p>${info[strategy].title}</p><p>${info[strategy].description}</p><p style="opacity: 0.8;">${info[strategy].warning}</p>`;
