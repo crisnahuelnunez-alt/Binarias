@@ -14,7 +14,6 @@
 <body>
     <div id="notification-container"></div>
     <div id="app-background"></div>
-    
     <div class="content-wrapper">
         
         <svg class="svg-filter-hidden">
@@ -128,7 +127,7 @@
                 </div>
                 <div class="scoreboard-item">
                     <span class="label">G/P Actual</span>
-                    <span id="sb-profit" class="value">$0.00</span>
+                    <span id="sb-profit" class="value">$0.00</span><span id="sb-profit-percent" class="value-percent"> (0.00%)</span>
                 </div>
             </div>
             <div id="setup-card" class="card">
@@ -250,7 +249,11 @@
                     <div id="phase-display"></div>
                     <h3 id="operation-label"></h3>
                     <div id="investment-amount" class="investment-amount"></div>
-                    <div class="action-buttons"><button class="btn btn-win" id="winBtn">Gané ✅</button><button class="btn btn-loss" id="lossBtn">Perdí ❌</button></div>
+                    <div class="action-buttons">
+                        <button class="btn btn-win" id="winBtn">Gané ✅</button>
+                        <button class="btn btn-loss" id="lossBtn">Perdí ❌</button>
+                    </div>
+                    <button class="btn-secondary" id="end-session-manual-btn" style="margin-top: 15px; width: 100%;">Finalizar Sesión Manualmente</button>
                 </div>
             </div>
             <div id="history-card" class="card hidden">
