@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 elementToShow.classList.remove('hidden');
                 void elementToShow.offsetWidth;
                 
-                // MODIFICACIÓN: Aplicar fade-in al elemento interno que contiene el contenido
+                // CORRECCIÓN DE FADE-IN: Lo aplica a la tarjeta interna si existe, sino al elemento principal.
                 const fadeElement = elementToShow.querySelector('.fade-in') || elementToShow;
                 fadeElement.classList.add('fade-in');
             }
