@@ -26,7 +26,13 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--color-bg);
+    /* --- FONDO DE PANTALLA AGREGADO --- */
+    background-image: url('assets/1758934972115.jpg');
+    background-color: var(--color-bg); /* Color de fallback */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    /* ---------------------------------- */
     color: var(--color-text-main);
     min-height: 100vh;
 }
@@ -604,6 +610,9 @@ footer {
     }
     .scoreboard-item:last-child {
         flex-basis: 100%; /* El G/P ocupa todo el ancho abajo */
+        display: flex; /* Para centrar el G/P y el Porcentaje en móvil */
+        justify-content: center;
+        align-items: center;
     }
     
     /* 5. Historial y Estadísticas */
