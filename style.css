@@ -26,7 +26,13 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--color-bg);
+    /* CAMBIO CLAVE AQUÍ: Usamos tu imagen de la carpeta assets */
+    background-image: url('./assets/1758934972115.jpg');
+    background-size: cover;          /* Asegura que la imagen cubra todo el fondo */
+    background-position: center;     /* Centra la imagen */
+    background-repeat: no-repeat;    /* Evita que la imagen se repita */
+    background-attachment: fixed;    /* Fija la imagen para que no se desplace al hacer scroll */
+    /* Mantenemos el color de texto y la altura de la vista */
     color: var(--color-text-main);
     min-height: 100vh;
 }
