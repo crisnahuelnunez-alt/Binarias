@@ -1,0 +1,15 @@
+# Archivos de la máquina virtual de Python (venv)
+venv/
+.venv/
+
+# Archivos de caché y compilación de Python
+__pycache__/
+*.pyc
+
+# Archivos de configuración local y de entorno
+.env
+.flaskenv
+
+# Archivos de bases de datos o sesión (si decides usarlas más tarde)
+*.db
+session_data.json
