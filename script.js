@@ -25,7 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
             masaniello_pro: { cyclesToComplete: 3, winsPerCycle: 4, tradesPerCycle: 10, currentCycle: 1, cycleWins: 0, cycleTrades: 0, cycleStartCapital: 0, fixedRiskCapital: 100 },
             masaniello: { 
                 totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true, 
-                lastLossAmount: 0, recoveryMode: false, currentLossStreakAmount: 0 
+                lastLossAmount: 0, 
+                recoveryMode: false, 
+                currentLossStreakAmount: 0 
             }
         },
         ui: {
@@ -81,8 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
             sbInitial: document.getElementById('sb-initial'),
             sbCurrent: document.getElementById('sb-current'),
             sbProfit: document.getElementById('sb-profit'),
+            // NUEVO ELEMENTO
+            sbProfitPercent: document.getElementById('sb-profit-percent'),
             personalStatsPanel: document.getElementById('personal-stats-panel'),
             sessionEndModal: document.getElementById('session-end-modal'),
+            endSessionManualBtn: document.getElementById('end-session-manual-btn'),
         },
         charts: {
             balanceChart: null,
@@ -151,6 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.backToMenuFromHistoryBtn.addEventListener('click', () => this.showScreen('main-menu'));
             this.ui.backToMenuFromStatsBtn.addEventListener('click', () => this.showScreen('main-menu'));
             this.ui.saveSessionBtn.addEventListener('click', () => this.saveSession());
+            // NUEVO EVENTO PARA EL BOTÓN MANUAL
+            this.ui.endSessionManualBtn.addEventListener('click', () => this.endSession(true));
+
             window.addEventListener('popstate', (event) => {
                 const loggedInUser = sessionStorage.getItem('currentUser');
                 if (!loggedInUser) { this._displayScreen('user'); return; }
@@ -213,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 elementToShow.classList.remove('hidden');
                 void elementToShow.offsetWidth;
                 
-                // CORRECCIÓN DE FADE-IN: Lo aplica a la tarjeta interna si existe, sino al elemento principal.
+                // Aplicar fade-in al elemento interno que contiene el contenido
                 const fadeElement = elementToShow.querySelector('.fade-in') || elementToShow;
                 fadeElement.classList.add('fade-in');
             }
@@ -386,7 +394,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 initialBalance: 0, currentBalance: 0, operationNumber: 1, lastInvestment: 0, history: [],
                 uas: { phase: 'ACUMULACIÓN', takeProfit: 0, stopLoss: 0, riskPerTrade: 5, lossStreakLimit: 4, consecutiveLosses: 0, winnerThreshold: 0, lastLossAmount: 0, expectedWinRate: 0 },
                 masaniello_pro: { cyclesToComplete: 3, winsPerCycle: 4, tradesPerCycle: 10, currentCycle: 1, cycleWins: 0, cycleTrades: 0, cycleStartCapital: 0, fixedRiskCapital: 100 },
-                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true, lastLossAmount: 0, recoveryMode: false, currentLossStreakAmount: 0 }
+                // Restauramos el recoveryMode
+                masaniello: { totalTrades: 10, expectedWins: 4, winsSoFar: 0, tradesDone: 0, takeProfit: 50, earlyExitEnabled: true, lastLossAmount: 0, recoveryMode: false, currentLossStreakAmount: 0 } 
             });
             this.ui.scoreboard.classList.add('hidden');
             this.ui.setupCard.classList.remove('hidden');
@@ -410,7 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const winRateValue = parseFloat(this.ui.uasWinRateSetup.value); // Valor en %
                 const payoutValue = parseFloat(this.ui.payoutRateInput.value); // Valor en %
 
-                // Llama a la función de conexión y espera el resultado de Python (punto de equilibrio y límite de racha)
                 const analisis = await this.validarEstrategiaEnPython(winRateValue, payoutValue);
                 
                 if (analisis.status === 'inviable' || analisis.status === 'error') {
@@ -418,7 +426,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // Si es viable, actualiza los límites con el cálculo de Python
                 this.state.uas.expectedWinRate = winRateValue / 100;
                 this.state.uas.lossStreakLimit = analisis.limiteRacha; 
                 
@@ -434,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 m.winsPerCycle = parseInt(this.ui.masaProWins.value);
                 m.tradesPerCycle = parseInt(this.ui.masaProTrades.value);
                 m.cycleStartCapital = balance;
-                m.fixedRiskCapital = parseFloat(this.ui.masaProFixedRisk.value); // Obtener el capital de riesgo fijo
+                m.fixedRiskCapital = parseFloat(this.ui.masaProFixedRisk.value); 
                 if (m.winsPerCycle >= m.tradesPerCycle) { this.showNotification("Las ganadas deben ser menores que las operaciones por ciclo.", 'error'); return; }
             } else { // Masaniello Clásico
                 const m = this.state.masaniello;
@@ -449,32 +456,33 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.liveCard.classList.remove('hidden');
             this.ui.historyCard.classList.remove('hidden');
             this.ui.setupCard.classList.add('hidden');
+            
             this.updateScoreboard();
             this.calculateNextInvestment();
+            
             if (this.state.strategy === 'uas') {
-                this.showNotification(`Iniciando sesión con ALTO automático a ${this.state.uas.lossStreakLimit} pérdidas.`, 'info');
+                this.showNotification(`Iniciando sesión. Límite de Racha Negativa (ALTO) calculado en: ${this.state.uas.lossStreakLimit} pérdidas.`, 'info');
             }
         },
         calculateNextInvestment() {
             let investment = 0;
             const strategy = this.state.strategy;
+            
             if (strategy === 'uas') {
                 const uas = this.state.uas;
                 const riskPercent = uas.riskPerTrade / 100;
                 
                 if (uas.phase === 'ACUMULACIÓN') { 
-                    // Inversión: Capital Actual * % de Riesgo
                     investment = this.state.currentBalance * riskPercent; 
                     
                 } else if (uas.phase === 'RECUPERACIÓN') {
-                    // Inversión: % de Riesgo + (33% de la Última Pérdida)
-                    investment = (this.state.currentBalance * riskPercent) + (uas.lastLossAmount * 0.33);
+                    investment = (this.state.currentBalance * riskPercent) + (uas.lastLossAmount * 0.15);
                     
                 } else { // WINNER
                     const profit = this.state.currentBalance - this.state.initialBalance;
-                    // Inversión: % de la Ganancia Acumulada
                     investment = profit * 0.30;
                 }
+                
             } else { // Masaniello Clásico y PRO
                 const m = strategy === 'masaniello_pro' ? this.state.masaniello_pro : this.state.masaniello;
                 
@@ -485,29 +493,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 const expected = strategy === 'masaniello_pro' ? m.winsPerCycle : m.expectedWins;
                 const total = strategy === 'masaniello_pro' ? m.tradesPerCycle : m.totalTrades;
                 
-                // Calcula el monto que Masaniello dice que debes invertir (Conservador)
                 const masanielloInvestmentBase = this.math.calculateMasanielloInvestment(capitalBase, total - trades, expected - wins, 1 + this.state.payout);
-                
                 let investmentCalculated = masanielloInvestmentBase;
 
                 // --- LÓGICA DE RECUPERACIÓN EN BLOQUE (ESTRATEGIA 3) ---
-                if (strategy === 'masaniello' && m.recoveryMode) {
-                    const amountToRecover = m.currentLossStreakAmount;
-                    // Inversión agresiva para recuperar: (Pérdidas acumuladas + 10% extra) / Payout
-                    investmentCalculated = (amountToRecover + (amountToRecover * 0.10)) / this.state.payout; 
+                if (strategy === 'masaniello') {
+                    const maxRiskAllowed = this.state.currentBalance * 0.10;
                     
-                    // Nos aseguramos de que la inversión sea al menos la de Masaniello si es viable
-                    investmentCalculated = Math.max(investmentCalculated, masanielloInvestmentBase); 
+                    if (m.recoveryMode) {
+                        const amountToRecover = m.currentLossStreakAmount;
+                        
+                        // Cálculo de Martingala Controlada: (Pérdidas + 10% extra) / Payout
+                        let recoveryInvestment = (amountToRecover + (amountToRecover * 0.10)) / this.state.payout; 
+                        
+                        // La inversión es el mínimo entre el CÁLCULO DE RECUPERACIÓN y el límite del 10%
+                        investmentCalculated = Math.min(recoveryInvestment, maxRiskAllowed);
+                        
+                    } else {
+                        // Si no está en Martingala, usa el cálculo de Masaniello (limitado al 10% por si Masaniello pide un monto muy alto)
+                        investmentCalculated = Math.min(masanielloInvestmentBase, maxRiskAllowed);
+                    }
                 }
                 // --- FIN LÓGICA DE RECUPERACIÓN EN BLOQUE ---
-
                 
-                // --- REGLA DE ORO UNIVERSAL: LÍMITE DEL 10% ---
-                const maxRiskAllowed = this.state.currentBalance * 0.10; 
-                
-                // La inversión final es el mínimo entre el cálculo de la estrategia y el límite del 10%
-                investment = Math.min(investmentCalculated, maxRiskAllowed);
+                investment = investmentCalculated;
             }
+            
             if (!this.ui.allowDecimals.checked) investment = Math.round(investment);
             investment = Math.max(1, investment);
             this.state.lastInvestment = Math.min(investment, this.state.currentBalance);
@@ -538,10 +549,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isWin) {
                     uas.consecutiveLosses = 0;
                     if (uas.phase === 'ACUMULACIÓN' && this.state.currentBalance >= uas.winnerThreshold) { uas.phase = 'WINNER'; }
-                    else if (uas.phase === 'RECUPERACIÓN') { uas.phase = this.state.currentBalance >= uas.winnerThreshold ? 'WINNER' : 'ACUMULACIÓN'; }
+                    else if (uas.phase === 'RECUPERACIÓN') { uas.phase = this.state.currentBalance >= this.state.initialBalance ? 'ACUMULACIÓN' : 'RECUPERACIÓN'; }
+                    else { uas.phase = 'ACUMULACIÓN'; }
                 } else {
                     uas.consecutiveLosses++;
                     if (uas.phase === 'WINNER') { uas.phase = 'RECUPERACIÓN'; }
+                    // Entra en RECUPERACIÓN si cae por debajo del balance inicial, incluso si estaba en ACUMULACIÓN
+                    else if (this.state.currentBalance < this.state.initialBalance) { uas.phase = 'RECUPERACIÓN'; }
                     else { uas.phase = 'ACUMULACIÓN'; }
                 }
             } else if (this.state.strategy === 'masaniello') {
@@ -550,18 +564,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isWin) {
                     m.winsSoFar++;
                     
-                    // --- RECUPERACIÓN EXITOSA ---
                     if (m.recoveryMode) {
-                        m.currentLossStreakAmount = 0; // Se cubrieron las pérdidas, reinicia el contador
-                        m.recoveryMode = false;      // Sale del modo de recuperación
+                        // Si gana en modo Martingala, reinicia la pérdida acumulada y sale del modo
+                        m.currentLossStreakAmount = 0; 
+                        m.recoveryMode = false;      
                     }
                     
                     m.lastLossAmount = 0;
                 } else {
-                    // --- ENTRA/SUMA AL MODO DE RECUPERACIÓN ---
                     m.lastLossAmount = this.state.lastInvestment;
-                    m.currentLossStreakAmount += this.state.lastInvestment; // Suma la pérdida actual
-                    m.recoveryMode = true; // Activa/Mantiene activo el modo de recuperación
+                    // Activa/mantiene el modo de recuperación solo si el balance cae por debajo del inicial
+                    if (this.state.currentBalance < this.state.initialBalance) {
+                         m.currentLossStreakAmount += this.state.lastInvestment;
+                         m.recoveryMode = true; 
+                    } else {
+                         // Si pierde pero sigue en ganancia general, NO activa el modo de recuperación agresiva
+                         m.currentLossStreakAmount = 0;
+                         m.recoveryMode = false;
+                    }
                 }
             } else if (this.state.strategy === 'masaniello_pro') {
                 this.state.masaniello_pro.cycleTrades++;
@@ -592,43 +612,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 const m = this.state.masaniello_pro;
                 const remTrades = m.tradesPerCycle - m.cycleTrades;
                 const remWins = m.winsPerCycle - m.cycleWins;
-                if (remWins <= 0) {
+                if (remWins <= 0) { // Ciclo Exitoso
                     if (m.currentCycle >= m.cyclesToComplete) return true;
                     this.handleCycleWin();
                     return false;
                 }
-                return remTrades <= 0;
+                // Si no quedan operaciones pero sí quedan ganancias, la campaña falla
+                if (remTrades <= 0 && remWins > 0) return true; 
+
+                return false;
             }
             return this.state.currentBalance < 1;
         },
         handleCycleWin() {
             const m = this.state.masaniello_pro;
-            this.showNotification(`¡CICLO ${m.currentCycle} COMPLETADO!`, 'success');
+            this.showNotification(`¡CICLO ${m.currentCycle} COMPLETADO! Balance Base Actualizado.`, 'success');
             m.currentCycle++;
             m.cycleStartCapital = this.state.currentBalance;
             m.cycleTrades = 0;
             m.cycleWins = 0;
             setTimeout(() => { this.updateLivePanel(); this.calculateNextInvestment(); }, 2000);
         },
-        endSession() {
+        endSession(isManual = false) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             const profitLoss = this.state.currentBalance - this.state.initialBalance;
             const profitLossPercent = (this.state.initialBalance > 0) ? (profitLoss / this.state.initialBalance) * 100 : 0;
-            let resultText = this.state.currentBalance > this.state.initialBalance ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
+            let resultText;
             
-            if (this.state.strategy === 'uas') {
+            if (isManual) {
+                resultText = '⏸️ Sesión Finalizada Manualmente';
+            } else if (this.state.strategy === 'uas') {
                 if (this.state.currentBalance >= this.state.uas.takeProfit) resultText = '✅ ¡Meta de Ganancia Alcanzada!';
                 else if (this.state.currentBalance <= this.state.uas.stopLoss) resultText = '❌ Límite de Pérdida Alcanzado';
                 else if (this.state.uas.consecutiveLosses >= this.state.uas.lossStreakLimit) resultText = '❌ Límite de Racha Negativa';
+                else resultText = (this.state.currentBalance > this.state.initialBalance) ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
             } else if (this.state.strategy === 'masaniello_pro') {
                 const m = this.state.masaniello_pro;
+                // Mensaje de éxito/falla de la campaña
                 if (m.currentCycle > m.cyclesToComplete) resultText = '🏆 ¡CAMPAÑA MASANIELLO PRO EXITOSA!';
-                else resultText = `❌ Campaña Fallida en Ciclo ${m.currentCycle}`;
+                else if (m.cycleTrades >= m.tradesPerCycle && m.cycleWins < m.winsPerCycle) resultText = `❌ Campaña Fallida en Ciclo ${m.currentCycle}`;
+                else resultText = 'Sesión Finalizada';
             } else if (this.state.strategy === 'masaniello') {
                 const m = this.state.masaniello;
                 if (m.earlyExitEnabled && this.state.currentBalance >= m.takeProfit) resultText = '✅ ¡Salida Anticipada Exitosa!';
                 else if (m.winsSoFar >= m.expectedWins) resultText = '✅ ¡Ciclo Masaniello Exitoso!';
                 else resultText = '❌ Ciclo Masaniello Fallido';
+            } else {
+                resultText = (this.state.currentBalance > this.state.initialBalance) ? 'Sesión en Ganancia' : 'Sesión en Pérdida';
             }
 
             const resultColor = (this.state.currentBalance > this.state.initialBalance) ? 'var(--color-win)' : 'var(--color-loss)';
@@ -660,7 +690,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             } else if (this.state.strategy === 'masaniello') {
                 const m = this.state.masaniello;
-                this.ui.phaseDisplay.innerText = `GANADAS: ${m.winsSoFar} de ${m.expectedWins}`;
+                // Muestra la advertencia de Martingala Controlada Activa
+                this.ui.phaseDisplay.innerText = `GANADAS: ${m.winsSoFar} de ${m.expectedWins} ${m.recoveryMode ? ' | ⚠️ MARTINGALA ACTIVA' : ''}`;
                 this.ui.phaseDisplay.style.color = 'var(--color-primary)';
             } else if (this.state.strategy === 'masaniello_pro') {
                 const m = this.state.masaniello_pro;
@@ -674,11 +705,25 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         updateScoreboard() {
             const initial = this.state.initialBalance, current = this.state.currentBalance, profit = current - initial;
+            // Cálculo del porcentaje de G/P
+            const profitPercent = initial > 0 ? (profit / initial) * 100 : 0;
+            
             this.ui.sbInitial.textContent = `$${initial.toFixed(2)}`;
             this.ui.sbCurrent.textContent = `$${current.toFixed(2)}`;
             this.ui.sbProfit.textContent = `$${profit.toFixed(2)}`;
+            this.ui.sbProfitPercent.textContent = ` (${profitPercent.toFixed(2)}%)`;
+            
             this.ui.sbProfit.className = 'value';
-            if (profit > 0) this.ui.sbProfit.classList.add('positive'); else if (profit < 0) this.ui.sbProfit.classList.add('negative');
+            this.ui.sbProfitPercent.className = 'value-percent'; 
+            
+            if (profit > 0) {
+                this.ui.sbProfit.classList.add('positive'); 
+                this.ui.sbProfitPercent.classList.add('positive');
+            } else if (profit < 0) {
+                this.ui.sbProfit.classList.add('negative'); 
+                this.ui.sbProfitPercent.classList.add('negative');
+            }
+
             this.ui.sbCurrent.className = 'value';
             if (current > initial) this.ui.sbCurrent.classList.add('positive'); else if (current < initial) this.ui.sbCurrent.classList.add('negative');
         },
@@ -692,7 +737,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.masanielloGroup.classList.toggle('hidden', strategy !== 'masaniello');
             this.ui.masanielloProGroup.classList.toggle('hidden', strategy !== 'masaniello_pro');
             
-            // Mostrar u ocultar el campo de Win Rate en la configuración UAS
             if (strategy === 'uas') {
                  this.ui.uasWinRateSetup.closest('.input-group').classList.remove('hidden'); 
             } else {
@@ -702,7 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const info = {
                 'uas': { borderColor: 'var(--color-secondary)', title: '<strong>ESTRATEGIA 1: RIESGO INTELIGENTE</strong>', description: 'Plan de progreso con fases de acumulación, ganancia y recuperación. Se detiene automáticamente con la regla del 3%.', warning: 'El límite de racha se CALCULA automáticamente. Requiere que el servidor Python esté corriendo.' },
                 'masaniello_pro': { borderColor: 'var(--color-primary)', title: '<strong>ESTRATEGIA 2: MASANIELLO SECCIONES</strong>', description: 'Encadena ciclos de Masaniello para un crecimiento exponencial. La inversión se limita a un capital de riesgo fijo, no al balance total.', warning: 'Alto riesgo. Un ciclo fallido termina la campaña.' },
-                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>ESTRATEGIA 3: MASANIELLO BÁSICO</strong>', description: 'Cálculo de inversión conservador con un modo de Martingala Controlada para recuperación rápida. **RIESGO MÁXIMO DEL 10% POR OPERACIÓN**.', warning: 'Activa la Salida Anticipada para mayor seguridad. Usa Martingala Controlada tras una pérdida.' }
+                'masaniello': { borderColor: 'var(--color-primary)', title: '<strong>ESTRATEGIA 3: MASANIELLO BÁSICO</strong>', description: 'Cálculo de inversión conservador que activa la **Martingala Controlada** para recuperación rápida, solo cuando el balance cae por debajo del inicial. **RIESGO MÁXIMO DEL 10% POR OPERACIÓN**.', warning: 'Martingala Controlada: ¡La inversión aumentará considerablemente tras la pérdida para recuperar el capital! Opera con cautela.' }
             };
             this.ui.strategyInfoBox.style.borderColor = info[strategy].borderColor;
             this.ui.strategyInfoBox.innerHTML = `<p>${info[strategy].title}</p><p>${info[strategy].description}</p><p style="opacity: 0.8;">${info[strategy].warning}</p>`;
