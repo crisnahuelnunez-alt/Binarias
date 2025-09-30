@@ -17,7 +17,7 @@
     --color-neutral-900: var(--color-card-bg); /* Fondo de la tarjeta */
 }
 
-/* Base styles and reset (manteniendo los tuyos) */
+/* Base styles and reset */
 * {
     margin: 0;
     padding: 0;
@@ -26,16 +26,29 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    /* CAMBIO CLAVE AQUÍ: Usamos tu imagen de la carpeta assets */
+    /* FONDO PERSONALIZADO CON TU IMAGEN */
     background-image: url('./assets/1758934972115.jpg');
-    background-size: cover;          /* Asegura que la imagen cubra todo el fondo */
-    background-position: center;     /* Centra la imagen */
-    background-repeat: no-repeat;    /* Evita que la imagen se repita */
-    background-attachment: fixed;    /* Fija la imagen para que no se desplace al hacer scroll */
-    /* Mantenemos el color de texto y la altura de la vista */
+    background-size: cover;          
+    background-position: center;     
+    background-repeat: no-repeat;    
+    background-attachment: fixed;    
+    /* Fallback y color de texto */
+    background-color: var(--color-bg); 
     color: var(--color-text-main);
     min-height: 100vh;
 }
+
+/* CAPA OSCURA SOBRE LA IMAGEN (app-background) */
+#app-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Overlay negro semi-transparente */
+    z-index: 5; 
+}
+
 
 /* Contenedor principal y clases de utilidad */
 .content-wrapper {
@@ -43,7 +56,7 @@ body {
     margin: 0 auto;
     padding: 20px;
     position: relative;
-    z-index: 10;
+    z-index: 10; /* Asegura que el contenido esté sobre el overlay */
 }
 
 .container {
@@ -59,7 +72,7 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(0, 255, 255, 0.1);
     
-    /* SOLUCIÓN: Desactiva cualquier filtro de turbulencia heredado para que el texto sea nítido */
+    /* SOLUCIÓN DE NITIDEZ: Desactiva cualquier filtro en el contenido */
     filter: none !important; 
 }
 
@@ -93,7 +106,6 @@ body {
     padding: 2px;
     border-radius: 24px;
     position: relative;
-    /* Adaptación para celular: Usa max-width más estricto */
     max-width: 400px; 
     margin: 40px auto; 
     
@@ -126,7 +138,6 @@ body {
     border: 2px solid var(--electric-border-color);
     margin-top: -4px;
     margin-left: -4px;
-    /* Mantenemos el filtro que crea el efecto */
     filter: url(#turbulent-displace); 
     
     position: relative; 
@@ -142,7 +153,7 @@ body {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    filter: none !important; /* Asegura nitidez del contenido interno */
+    filter: none !important; 
 }
 
 
@@ -168,7 +179,7 @@ body {
 }
 /* --- FIN ESTILOS ELÉCTRICOS ADAPTADOS --- */
 
-/* Resto de estilos del proyecto */
+/* Resto de estilos del proyecto (Mantengo la adaptacion a móvil) */
 
 h1, h2, h3 { color: var(--color-text-main); font-family: 'Lexend', sans-serif; margin-bottom: 10px; }
 h1 { font-size: 2em; }
@@ -545,7 +556,7 @@ footer {
 }
 
 /* ================================================= */
-/* MEDIA QUERIES PROFESIONALES (MÓVIL)      */
+/* MEDIA QUERIES PROFESIONALES (MÓVIL)               */
 /* ================================================= */
 
 @media (max-width: 768px) {
@@ -568,7 +579,6 @@ footer {
 
     /* 3. Login y Menú Principal (Efecto Eléctrico) */
     .login-menu-card-container { 
-        /* Usar el 95% del ancho para no chocar con los bordes del dispositivo */
         max-width: 95%; 
         margin: 20px auto; 
     }
@@ -582,7 +592,7 @@ footer {
     
     /* Grupos de inputs (Setup) */
     .split-inputs { 
-        grid-template-columns: 1fr; /* Una columna para inputs */
+        grid-template-columns: 1fr; 
         gap: 15px;
     }
     
@@ -595,22 +605,22 @@ footer {
         margin-bottom: 10px;
     }
     .scoreboard-item:last-child {
-        flex-basis: 100%; /* El G/P ocupa todo el ancho abajo */
+        flex-basis: 100%; 
     }
     
     /* 5. Historial y Estadísticas */
     
-    /* Tabla de Historial: Forzar desplazamiento horizontal en caso de desbordamiento */
+    /* Tabla de Historial: Forzar desplazamiento horizontal */
     #history-card, #saved-sessions-list {
         overflow-x: auto;
     }
     #history-card table, .session-details table {
-        min-width: 550px; /* Asegura que la tabla no se colapse demasiado */
+        min-width: 550px; 
     }
     
     /* Panel de estadísticas personales */
     #personal-stats-panel { 
-        grid-template-columns: 1fr; /* Una columna para mejor lectura */
+        grid-template-columns: 1fr; 
         gap: 10px;
     }
 
@@ -632,7 +642,6 @@ footer {
         width: auto;
     }
     .notification {
-        /* Ocupar todo el ancho disponible */
         width: 100%;
         text-align: center;
         padding: 12px;
