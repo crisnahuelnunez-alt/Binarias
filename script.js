@@ -141,6 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
             Chart.defaults.color = 'rgba(234, 234, 234, 0.8)';
             Chart.defaults.font.family = "'Inter', sans-serif";
             Chart.defaults.borderColor = 'rgba(0, 255, 255, 0.2)';
+            
+            // Llama a updateUI al inicio para mostrar la descripción de la estrategia por defecto
+            if (this.state.currentUser) {
+                this.updateUI();
+            }
         },
         bindEvents() {
             this.ui.loginBtn.addEventListener('click', () => this.login());
@@ -206,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lastBalance = this.getLastBalance();
                 this.ui.initialBalanceInput.value = lastBalance ? lastBalance.toFixed(2) : '';
                 this.ui.uasStopLoss.value = lastBalance ? (lastBalance * 0.8).toFixed(0) : '20';
+                this.updateUI(); // Asegura que la descripción se cargue al entrar en el setup
                 elementToShow = this.ui.dashboard;
             }
             else if (screenName === 'history') {
@@ -675,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rowClass = op.result === 'WIN' ? 'win-row' : 'loss-row';
                 const resultColor = op.netResult >= 0 ? 'var(--color-secondary)' : 'var(--color-loss)';
                 const cycleText = op.cycle ? op.cycle : '-';
-                tableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>${cycleText}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
+                historyTableHTML += `<tr class="${rowClass}"><td>${op.op}</td><td>${cycleText}</td><td>$${op.investment.toFixed(2)}</td><td>${op.result}</td><td style="color: ${resultColor}">$${op.netResult.toFixed(2)}</td><td>$${op.balance.toFixed(2)}</td></tr>`;
             }
             this.ui.tableContent.innerHTML = tableHTML + '</tbody></table>';
         },
