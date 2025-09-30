@@ -716,9 +716,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             this.ui.sbInitial.textContent = `$${initial.toFixed(2)}`;
             this.ui.sbCurrent.textContent = `$${current.toFixed(2)}`;
-            this.ui.sbProfit.textContent = `$${profit.toFixed(2)}`;
-            this.ui.sbProfitPercent.textContent = ` (${profitPercent.toFixed(2)}%)`;
+            this.ui.sbProfit.textContent = `$${profit.toFixed(2)} `;
+            this.ui.sbProfitPercent.textContent = `(${profitPercent.toFixed(2)}%)`;
             
+            // Reinicia y aplica clases
             this.ui.sbProfit.className = 'value';
             this.ui.sbProfitPercent.className = 'value-percent'; 
             
